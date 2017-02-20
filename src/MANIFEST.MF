@@ -1,0 +1,4 @@
+Manifest-Version: 1.0.5
+Created-By: HY.ZhengWei@qq.com  2011
+Specification-Version: 1.0.5  2017-02-09
+SourceCode: https://github.com/HY-ZhengWei/hy.common.tpool
