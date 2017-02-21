@@ -70,7 +70,6 @@
 			return ++$SerialNo;
 		}
 		
-		
 
 		public MyTask() 
 		{
@@ -91,7 +90,7 @@
 			}
 			finally
 			{
-				this.finishTask();
+				this.finishTask();  // 任务执行完成。如果不执行此方法：表示任务将循环往复的一直执行下去
 			}
 		}
 
@@ -103,13 +102,11 @@
 		}
 
 		
-		
 		@Override
 		public String getTaskDesc() 
 		{
 			return "任务的描述信息";
 		}
-		
 	}
 	
 	
