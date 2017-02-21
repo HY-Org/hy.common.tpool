@@ -18,6 +18,7 @@ import org.hy.common.Queue;
  * @version  V1.0  2012-05-16
  *           V2.0  2017-02-09  添加：空闲开始时间和扫描任务是否在运行中的状态，
  *                                  用其控制扫描任务在长时间空闲时，自动销毁的功能，防止长时间占用资源。
+ *           V3.0  2017-02-21  添加：停止尚未绑定线程开始执行的任务。对于已绑定线程执行的任务不生效。
  */
 public class TaskPool 
 {
@@ -88,9 +89,19 @@ public class TaskPool
 	 * 
 	 * @return
 	 */
-	public static Task<?> getTask()
+	public static synchronized Task<?> getTask()
 	{
-		return getInstance().getQueue().get();
+	    Task<?> v_Task = getInstance().getQueue().get();
+	    
+	    if ( v_Task != null )
+	    {
+	        if ( v_Task.isStop() )
+	        {
+	            return getTask();
+	        }
+	    }
+	    
+		return v_Task;
 	}
 	
 	

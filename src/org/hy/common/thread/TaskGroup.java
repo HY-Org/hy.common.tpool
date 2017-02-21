@@ -24,6 +24,7 @@ import org.hy.common.thread.event.DefaultTaskGroupEvent;
  *
  * @author   ZhengWei(HY)
  * @version  V1.0  2012-04-28
+ *           V2.0  2017-02-21  添加：停止尚未绑定线程开始执行的任务。对于已绑定线程执行的任务不生效。
  */
 public class TaskGroup 
 {
@@ -136,6 +137,29 @@ public class TaskGroup
 	public void startTask(Task<?> i_Task)
 	{
 	    TaskPool.putTask(i_Task);
+	}
+	
+	
+	
+	/**
+	 * 停止尚未绑定线程开始执行的任务。对于已绑定线程执行的任务不生效。
+	 * 
+	 * @author      ZhengWei(HY)
+	 * @createDate  2017-02-21
+	 * @version     v1.0
+	 *
+	 */
+	public void stopTasksNoExecute()
+	{
+	    if ( Help.isNull(this.taskList) )
+	    {
+	        return;
+	    }
+	    
+	    for (Task<?> v_Task : this.taskList)
+	    {
+	        v_Task.stopTasksNoExecute();
+	    }
 	}
 	
 	

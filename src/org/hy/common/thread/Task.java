@@ -13,6 +13,8 @@ import org.hy.common.Help;
  *
  * @author   ZhengWei(HY)
  * @version  V1.0  2011-06-08
+ *           V2.0  2017-02-21  添加：isStop状态控制属性。任务是否停止执行。任务还未绑定线程执行前被停止。
+ *                                  对于已绑定线程正在执行中的是不生效的。
  */
 public abstract class Task<O> implements Runnable
 {
@@ -34,6 +36,13 @@ public abstract class Task<O> implements Runnable
 	
 	/** 任务是否完成。为了安全与功能相关独立，不对实现类与子类开放此属性  */
 	private   boolean        isFinish;
+	
+	/** 
+	 * 任务是否停止执行。任务还未绑定线程执行前被停止。
+	 * 对于已绑定线程正在执行中的是不生效的。
+	 * 默认为:false。
+	 */
+	private   boolean        isStop;
 	
 	/** 窗口输出的缓存 */
 	protected StringBuilder  printBuffer;
@@ -86,7 +95,8 @@ public abstract class Task<O> implements Runnable
 		this.taskType    = i_TaskType;
 		this.taskNo      = this.getSerialNo();
 		this.taskName    = this.taskType + "-" + this.taskNo; 
-		this.isFinish   = false;
+		this.isFinish    = false;
+		this.isStop      = false;
 		
 		this.printBuffer = new StringBuilder();
 		this.sqlBuffer   = new StringBuilder();
@@ -122,8 +132,6 @@ public abstract class Task<O> implements Runnable
 	/**
 	 * 设置任务组。
 	 * 
-	 * 为了安全与功能相关独立，不对外提供 getTaskGroup() 方法。
-	 * 
 	 * 当任务添加到任务组中时，任务组默认会调用 setTaskGroup() 方法，将任务组自己设置为任务的任务组属性。
 	 * 即，一般不用主动调用此方法。
 	 * 
@@ -136,7 +144,17 @@ public abstract class Task<O> implements Runnable
 	
 	
 	
-	/**
+    /**
+     * 获取：任务组。可选属性，即任务可以在没有组的情况独立运行。为了安全与功能相关独立，不对实现类与子类开放此属性
+     */
+    public TaskGroup getTaskGroup()
+    {
+        return this.taskGroup;
+    }
+
+    
+
+    /**
 	 * 获取任务的名称
 	 * 
 	 * @return
@@ -342,7 +360,7 @@ public abstract class Task<O> implements Runnable
 	
 	
 	
-	/**
+    /**
 	 * 准备 -- 任务在开始执行前的准备动作。
 	 * 
 	 * 它应由 TaskPool 或 ThreadPool 调用。
@@ -352,11 +370,12 @@ public abstract class Task<O> implements Runnable
 	public void ready()
 	{
 		this.isFinish = false;
+		this.isStop   = false;
 	}
 	
 	
 	
-	/**
+    /**
 	 * 标记任务执行完成。
 	 * 
 	 * 此方法主要用于 this.execute() 方法中使用。是由实现任务的类型来调用的。
@@ -379,6 +398,32 @@ public abstract class Task<O> implements Runnable
 			this.taskGroup.taskFinish(this);
 		}
 	}
+	
+	
+	
+	/**
+     * 任务是否停止执行。任务还未绑定线程执行前被停止。
+     * 对于已绑定线程正在执行中的是不生效的。
+     * 默认为:false。
+     */
+    public boolean isStop()
+    {
+        return isStop;
+    }
+    
+    
+    
+    /**
+     * 任务是否停止执行。任务还未绑定线程执行前被停止。
+     * 对于已绑定线程正在执行中的是不生效的。
+     * 默认为:false。
+     * 
+     * @param isStop 
+     */
+    public void stopTasksNoExecute()
+    {
+        this.isStop = true;
+    }
 	
 	
 	
