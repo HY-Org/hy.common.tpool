@@ -55,7 +55,7 @@
 
 
 
-### 自定义任务及执行
+### 自定义任务及执行的代码样例
 ```java
 	/**
 	 * 自定义任务
@@ -111,6 +111,9 @@
 	
 	
 	
+	/**
+	 * 执行方式01：将任务组织成任务组后再执行
+	 */
 	public static void main(String [] args)
 	{
 		TaskGroup v_TaskGroup = new TaskGroup("任务组标识");
@@ -119,7 +122,19 @@
 		{
 			v_TaskGroup.addTask(new MyTask());      // 将任务添加到任务组中
 		}
+		
+		v_TaskGroup.addTaskGroupListener(...);      // 实现TaskGroupListener接口后，可在任务均完成时触发指定的动作（可选的）
 		v_TaskGroup.startupAllTask();               // 执行任务组
+	}
+	
+	
+	
+	/**
+	 * 执行方式02：任务直接由线程池来执行
+	 */
+	public static void main(String [] args)
+	{
+		ThreadPool.getThreadInstance(new MyTask()).startupAndExecuteTask();
 	}
 ```
 
