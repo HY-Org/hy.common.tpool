@@ -41,11 +41,11 @@
 		    
 		    
 		    <jobs id="JOBS" this="JOBS">
-		    	<addJob ref="定时任务的标识01" />
+		    	<addJob ref="定时任务的标识01" />                  <!-- 将定时任务添加到任务池中 -->
 		    	<addJob ref="定时任务的标识02" />
 		    	<addJob ref="定时任务的标识n"  />
 		    	
-		    	<call name="startup" />
+		    	<call name="startup" />                         <!-- 启动定时任务的调度任务 -->
 		    </jobs>
 			
 		</xconfig>
