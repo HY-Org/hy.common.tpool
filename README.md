@@ -55,6 +55,18 @@
 
 
 
+### 线程池参数配置
+```java
+	// 以下均为默认值
+	ThreadPool.setMaxThread(100);       // 线程池中最大线程数
+	ThreadPool.setMinThread(10);        // 线程池中最小线程数
+	ThreadPool.setMinIdleThread(2);     // 线程池中最小空闲线程数
+	ThreadPool.setIntervalTime(1000L);  // 等待时间间隔(单位：毫秒)
+	ThreadPool.setIdleTimeKill(60L);    // 空闲多少时间后线程自毁(单位：秒)
+```
+
+
+
 ### 打开线程池监控界面
 ```java
 	ThreadPool.setWatch(true);   // 默认为：false
