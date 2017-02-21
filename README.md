@@ -69,7 +69,7 @@
 
 ### 打开线程池监控界面
 ```java
-	ThreadPool.setWatch(true);   // 默认为：false
+	ThreadPool.setWatch(true);          // 默认为：false
 ```
 ![image](images/ThreadPoolWatch.png)
 
