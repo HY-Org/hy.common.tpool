@@ -204,7 +204,7 @@ public class ThreadBase
 	}
 
 
-	public ThreadRunStatus getThreadRunStatus() 
+	public synchronized ThreadRunStatus getThreadRunStatus() 
 	{
 		return threadRunStatus;
 	}
