@@ -18,6 +18,13 @@
 		
 		
 		<!-- 任务配置信息 -->
+		<!-- $IntervalType_Second  间隔类型: 秒      -->
+		<!-- $IntervalType_Minute  间隔类型: 分钟    -->
+		<!-- $IntervalType_Hour    间隔类型: 小时    -->
+		<!-- $IntervalType_Day     间隔类型: 天      -->
+		<!-- $IntervalType_Week    间隔类型: 周      -->
+		<!-- $IntervalType_Month   间隔类型: 月      -->
+		<!-- $IntervalType_Manual  间隔类型: 手工执行 -->
 		<xconfig>
 			
 		    <job id="定时任务的标识">
