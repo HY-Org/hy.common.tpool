@@ -65,7 +65,7 @@ public class ThreadPool
 	 * @param i_TaskObject      任务对象
 	 * @return
 	 */
-	public static ThreadBase getThreadInstance(Task i_TaskObject)
+	public static ThreadBase getThreadInstance(Task<?> i_TaskObject)
 	{
 		return getThreadInstance(i_TaskObject ,IntervalTime ,IdleTimeKill ,true);
 	}
@@ -78,7 +78,7 @@ public class ThreadPool
 	 * @param i_IsWaitResource  是否等待空闲的线程资源
 	 * @return
 	 */
-	public static ThreadBase getThreadInstance(Task i_TaskObject ,boolean i_IsWaitResource)
+	public static ThreadBase getThreadInstance(Task<?> i_TaskObject ,boolean i_IsWaitResource)
 	{
 		return getThreadInstance(i_TaskObject ,IntervalTime ,IdleTimeKill ,i_IsWaitResource);
 	}
@@ -101,7 +101,7 @@ public class ThreadPool
      * @param i_IdleTimeKill    空闲多少时间后线程自毁(单位：秒) 默认为：60秒
 	 * @return
 	 */
-	public synchronized static ThreadBase getNewThreadInstance(Task i_TaskObject ,long i_IntervalTime ,long i_IdleTimeKill)
+	public synchronized static ThreadBase getNewThreadInstance(Task<?> i_TaskObject ,long i_IntervalTime ,long i_IdleTimeKill)
 	{
 	    ThreadBase v_ThreadBase = new ThreadBase(i_TaskObject ,i_IntervalTime ,i_IdleTimeKill);
 	    THREADPOOL.add(v_ThreadBase);
@@ -128,7 +128,7 @@ public class ThreadPool
 	 * @param i_IsWaitResource  是否等待空闲的线程资源
 	 * @return
 	 */
-	public synchronized static ThreadBase getThreadInstance(Task i_TaskObject ,long i_IntervalTime ,long i_IdleTimeKill ,boolean i_IsWaitResource)
+	public synchronized static ThreadBase getThreadInstance(Task<?> i_TaskObject ,long i_IntervalTime ,long i_IdleTimeKill ,boolean i_IsWaitResource)
 	{
 		if ( i_TaskObject == null )
 		{
@@ -281,7 +281,7 @@ public class ThreadPool
 	 * @param i_IdleTimeKill  空闲多少时间后线程自毁(单位：秒) 默认为：60秒
 	 * @return
 	 */
-	protected static ThreadBase getIdleThread(Task i_TaskObject ,long i_IntervalTime ,long i_IdleTimeKill)
+	protected static ThreadBase getIdleThread(Task<?> i_TaskObject ,long i_IntervalTime ,long i_IdleTimeKill)
 	{
 		// 其实在 IdleThreadPool.get() 内部也有 size() == 0 的判断
 		// 但那是 synchronized 的，在此添加判断，可以提高性能与速度

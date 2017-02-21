@@ -14,7 +14,7 @@ import org.hy.common.thread.ThreadPool;
  * @author   ZhengWei(HY)
  * @version  V1.0  2011-11-25
  */
-public class TestThreadTask01 extends Task
+public class TestThreadTask01 extends Task<Object>
 {
 	private static int $SerialNo = 0;
 	

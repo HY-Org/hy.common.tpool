@@ -37,7 +37,7 @@ public class JU20120522_TaskPool
 	
 
 	
-	class MyTask extends Task
+	class MyTask extends Task<Object>
 	{
 
 		public MyTask() 

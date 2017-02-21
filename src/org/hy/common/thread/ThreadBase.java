@@ -30,7 +30,7 @@ public class ThreadBase
 	protected CoreThread               coreThread;
 	
 	/** 任务对象 */
-	protected Task                     taskObject;
+	protected Task<?>                  taskObject;
 	
 	/** 前一个任务对象的任务类型 */
 	protected String                   oldTaskType;                   
@@ -86,7 +86,7 @@ public class ThreadBase
 	}
 	
 	
-	public ThreadBase(Task i_TaskObject)
+	public ThreadBase(Task<?> i_TaskObject)
 	{
 		this(i_TaskObject ,100 ,60);
 	}
@@ -99,7 +99,7 @@ public class ThreadBase
 	 * @param i_IntervalTime  等待时间间隔(单位：毫秒) 默认为：100毫秒
 	 * @param i_IdleTimeKill  空闲多少时间后线程自毁(单位：秒) 默认为：60秒
 	 */
-	public ThreadBase(Task i_TaskObject ,long i_IntervalTime ,long i_IdleTimeKill)
+	public ThreadBase(Task<?> i_TaskObject ,long i_IntervalTime ,long i_IdleTimeKill)
 	{			
 		this.setIdleTimeKill(i_IdleTimeKill);
 		this.setIntervalTime(i_IntervalTime);
@@ -247,13 +247,13 @@ public class ThreadBase
 	}
 
 	
-	public Task getTaskObject() 
+	public Task<?> getTaskObject() 
 	{
 		return taskObject;
 	}
 
 
-	public void setTaskObject(Task taskObject) 
+	public void setTaskObject(Task<?> taskObject) 
 	{
 		this.taskObject = taskObject;
 		
@@ -339,7 +339,7 @@ public class ThreadBase
 	
 	// 待删除
 	@Deprecated
-	public void newTask(Task i_TaskObject)
+	public void newTask(Task<?> i_TaskObject)
 	{
 //		this.isHaveTask = true;
 //		this.setTaskObject(i_TaskObject);

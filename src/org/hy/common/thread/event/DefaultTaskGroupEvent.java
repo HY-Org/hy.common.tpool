@@ -34,7 +34,7 @@ public class DefaultTaskGroupEvent extends TaskGroupEvent
 	/**
 	 * 任务组中所有的任务
 	 */
-	public void setTasks(Iterator<Task> i_Iterator)
+	public void setTasks(Iterator<Task<?>> i_Iterator)
 	{
 		this.iterator = i_Iterator;
 	}

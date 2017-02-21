@@ -60,7 +60,7 @@
 	/**
 	 * 自定义任务
 	 */
-	public class MyTask extends Task
+	public class MyTask extends Task<Object>
 	{
 		private static int $SerialNo = 0;
 	

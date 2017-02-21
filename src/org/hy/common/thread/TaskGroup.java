@@ -36,7 +36,7 @@ public class TaskGroup
 	private String                               taskGroupName;
 	
 	/** 任务组中的任务列表 */
-	private List<Task>                           taskList;
+	private List<Task<?>>                        taskList;
 	
 	/** 组中完成任务的数量 */
 	private int                                  finishSize;
@@ -90,7 +90,7 @@ public class TaskGroup
 		}
 		
 		this.taskGroupName     = i_TaskGroupName;
-		this.taskList          = new ArrayList<Task>();
+		this.taskList          = new ArrayList<Task<?>>();
 		this.finishSize        = 0;
 		this.taskGroupIsFinish = false;
 		this.tasksIsFinish     = false;
@@ -133,7 +133,7 @@ public class TaskGroup
 	
 	
 	
-	public void startTask(Task i_Task)
+	public void startTask(Task<?> i_Task)
 	{
 	    TaskPool.putTask(i_Task);
 	}
@@ -147,7 +147,7 @@ public class TaskGroup
 	 * 
 	 * @param i_Task
 	 */
-	public void taskFinish(Task i_Task)
+	public void taskFinish(Task<?> i_Task)
 	{
 		// 任务组已标记完成，就不在接收每个任务的报告了。
 		if ( this.isTasksFinish() )
@@ -211,7 +211,7 @@ public class TaskGroup
 	 * 
 	 * @param i_Task
 	 */
-	public void addTask(Task i_Task)
+	public void addTask(Task<?> i_Task)
 	{
 		if ( i_Task == null )
 		{
@@ -230,7 +230,7 @@ public class TaskGroup
 	 * @param i_Index  小标从零开始
 	 * @return
 	 */
-	public Task getTask(int i_Index)
+	public Task<?> getTask(int i_Index)
 	{
 		return this.taskList.get(i_Index);
 	}
@@ -292,7 +292,7 @@ public class TaskGroup
 	{
 		for (int v_Index=this.taskList.size()-1; v_Index>=0; v_Index--)
 		{
-			Task v_Task = null;
+			Task<?> v_Task = null;
 			
 			try
 			{
@@ -397,11 +397,11 @@ public class TaskGroup
 	 */
 	private void notifyStartupAllTaskListeners(TaskGroupEvent i_Event)
 	{
-		Iterator v_Iter = this.taskGroupListeners.iterator(); 
+		Iterator<TaskGroupListener> v_Iter = this.taskGroupListeners.iterator(); 
 
 		while ( v_Iter.hasNext() ) 
 		{
-			TaskGroupListener v_Listener = (TaskGroupListener)v_Iter.next();
+			TaskGroupListener v_Listener = v_Iter.next();
 
 			v_Listener.startupAllTask(i_Event);
 		}
@@ -416,11 +416,11 @@ public class TaskGroup
 	 */
 	private void notifyFinishAllTaskListeners(TaskGroupEvent i_Event)
 	{
-		Iterator v_Iter = this.taskGroupListeners.iterator(); 
+		Iterator<TaskGroupListener> v_Iter = this.taskGroupListeners.iterator(); 
 
 		while ( v_Iter.hasNext() ) 
 		{
-			TaskGroupListener v_Listener = (TaskGroupListener)v_Iter.next();
+			TaskGroupListener v_Listener = v_Iter.next();
 
 			v_Listener.finishAllTask(i_Event);
 		}

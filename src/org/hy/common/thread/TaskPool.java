@@ -28,7 +28,7 @@ public class TaskPool
 	
 	
 	/** 任务队列 */
-	private Queue<Task>      taskQueue;
+	private Queue<Task<?>>   taskQueue;
 	
 	/** 扫描任务池的任务，即：内含的独立任务 */
 	private ScanTaskPoolTask scanTaskPoolTask; 
@@ -52,7 +52,7 @@ public class TaskPool
 	 * 
 	 * @param i_Task
 	 */
-	public synchronized static void putTask(Task i_Task)
+	public synchronized static void putTask(Task<?> i_Task)
 	{
 		if ( i_Task == null )
 		{
@@ -88,7 +88,7 @@ public class TaskPool
 	 * 
 	 * @return
 	 */
-	public static Task getTask()
+	public static Task<?> getTask()
 	{
 		return getInstance().getQueue().get();
 	}
@@ -143,12 +143,12 @@ public class TaskPool
 	 */
 	private TaskPool()
 	{
-		this.taskQueue = new Queue<Task>();
+		this.taskQueue = new Queue<Task<?>>();
 	}
 	
 	
 	
-	private Queue<Task> getQueue()
+	private Queue<Task<?>> getQueue()
 	{
 		return this.taskQueue;
 	}
@@ -198,7 +198,7 @@ public class TaskPool
 	 *           V2.0  2017-02-09  添加：空闲开始时间和扫描任务是否在运行中的状态，
 	 *                                  用其控制扫描任务在长时间空闲时，自动销毁的功能，防止长时间占用资源。
 	 */
-	class ScanTaskPoolTask extends Task
+	class ScanTaskPoolTask extends Task<Object>
 	{	
 		/** 任务类型常量 */
 		public final static String $TaskType$ = "ScanTaskPool";

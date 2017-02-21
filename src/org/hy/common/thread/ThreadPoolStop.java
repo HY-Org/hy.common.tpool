@@ -119,12 +119,12 @@ public class ThreadPoolStop implements Runnable
 	 */
 	private boolean notifyThreadPoolStopBeforeListeners(ThreadPoolStopEvent i_Event)
 	{
-		Iterator v_Iter       = this.tPoolStopListeners.iterator();
-		boolean  v_IsContinue = true;
+		Iterator<ThreadPoolStopListener> v_Iter       = this.tPoolStopListeners.iterator();
+		boolean                          v_IsContinue = true;
 
 		while ( v_IsContinue && v_Iter.hasNext() ) 
 		{
-			ThreadPoolStopListener v_Listener = (ThreadPoolStopListener)v_Iter.next();
+			ThreadPoolStopListener v_Listener = v_Iter.next();
 
 			v_IsContinue = v_Listener.stopBefore(i_Event);
 		}
@@ -141,11 +141,11 @@ public class ThreadPoolStop implements Runnable
 	 */
 	private void notifyThreadPoolStopingListeners(ThreadPoolStopEvent i_Event)
 	{
-		Iterator v_Iter       = this.tPoolStopListeners.iterator(); 
+		Iterator<ThreadPoolStopListener> v_Iter = this.tPoolStopListeners.iterator(); 
 
 		while ( v_Iter.hasNext() ) 
 		{
-			ThreadPoolStopListener v_Listener = (ThreadPoolStopListener)v_Iter.next();
+			ThreadPoolStopListener v_Listener = v_Iter.next();
 
 			v_Listener.stopProcess(i_Event);
 		}
@@ -160,11 +160,11 @@ public class ThreadPoolStop implements Runnable
 	 */
 	private void notifyThreadPoolStopAfterListeners(ThreadPoolStopEvent i_Event)
 	{
-		Iterator v_Iter = this.tPoolStopListeners.iterator();
+		Iterator<ThreadPoolStopListener> v_Iter = this.tPoolStopListeners.iterator();
 
 		while ( v_Iter.hasNext() ) 
 		{
-			ThreadPoolStopListener v_Listener = (ThreadPoolStopListener)v_Iter.next();
+			ThreadPoolStopListener v_Listener = v_Iter.next();
 
 			v_Listener.stopAfter(i_Event);
 		}

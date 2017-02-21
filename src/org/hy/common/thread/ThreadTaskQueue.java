@@ -33,7 +33,7 @@ public abstract class ThreadTaskQueue<Que ,O> extends Task<O>
 	 * @param i_Object
 	 * @return
 	 */
-	public abstract Task callBack_NewQueueThreadTask(Que i_Object);
+	public abstract Task<?> callBack_NewQueueThreadTask(Que i_Object);
 	
 	
 	
@@ -91,7 +91,7 @@ public abstract class ThreadTaskQueue<Que ,O> extends Task<O>
 			
 			if ( v_Obj != null )
 			{
-				Task v_QueueTask = this.callBack_NewQueueThreadTask(v_Obj);
+				Task<?> v_QueueTask = this.callBack_NewQueueThreadTask(v_Obj);
 				
 				if ( v_QueueTask != null )
 				{

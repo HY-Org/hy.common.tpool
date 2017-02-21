@@ -24,7 +24,7 @@ public class TaskGroupEvent extends BaseEvent
 	private static final long serialVersionUID = -5418164359550922450L;
 	
 	/** 任务组中所有的任务 */
-	protected Iterator<Task> iterator;
+	protected Iterator<Task<?>> iterator;
 	
 	
 	
@@ -40,7 +40,7 @@ public class TaskGroupEvent extends BaseEvent
 	 * 
 	 * @return
 	 */
-	public Iterator<Task> getTasks()
+	public Iterator<Task<?>> getTasks()
 	{
 		return this.iterator;
 	}

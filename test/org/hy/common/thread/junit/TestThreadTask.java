@@ -13,7 +13,7 @@ import org.hy.common.thread.ThreadPool;
  * @author   ZhengWei(HY)
  * @version  V1.0  2011-11-23
  */
-public class TestThreadTask extends Task
+public class TestThreadTask extends Task<Object>
 {
 	private static int $SerialNo = 0;
 	
