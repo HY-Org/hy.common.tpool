@@ -123,7 +123,7 @@
 			v_TaskGroup.addTask(new MyTask());      // 将任务添加到任务组中
 		}
 		
-		v_TaskGroup.addTaskGroupListener(...);      // 实现TaskGroupListener接口后，可在任务均完成时触发指定的动作（可选的）
+		v_TaskGroup.addTaskGroupListener(...);      // 实现TaskGroupListener接口后，可在任务均完成时触发指定动作（可选的）
 		v_TaskGroup.startupAllTask();               // 执行任务组
 	}
 	
