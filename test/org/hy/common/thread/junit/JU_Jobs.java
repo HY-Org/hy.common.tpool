@@ -24,7 +24,6 @@ public class JU_Jobs
     
     public static void main(String [] args) throws Exception
     {
-        ThreadPool.setWatch(true);
         ThreadPool.setMaxThread(2);
         ThreadPool.setMinThread(0);
         ThreadPool.setMinIdleThread(0);
