@@ -55,6 +55,79 @@
 
 
 
+### 自定义任务及执行
+```java
+	/**
+	 * 自定义任务
+	 */
+	public class MyTask extends Task
+	{
+		private static int $SerialNo = 0;
+	
+
+		private synchronized int GetSerialNo()
+		{
+			return ++$SerialNo;
+		}
+		
+		
+
+		public MyTask() 
+		{
+			super("任务类型标识");
+		}
+
+
+		@Override
+		public void execute() 
+		{
+			try
+			{
+				// 自定义任务执行的动作
+			}
+			catch (Exception exce)
+			{
+				exce.printStackTrace();
+			}
+			finally
+			{
+				this.finishTask();
+			}
+		}
+
+		
+		@Override
+		public int getSerialNo() 
+		{
+			return GetSerialNo();   // 任务的序号
+		}
+
+		
+		
+		@Override
+		public String getTaskDesc() 
+		{
+			return "任务的描述信息";
+		}
+		
+	}
+	
+	
+	
+	public static void main(String [] args)
+	{
+		TaskGroup v_TaskGroup = new TaskGroup("任务组标识");
+		
+		for (int v_Index=0; v_Index<100; v_Index++)
+		{
+			v_TaskGroup.addTask(new MyTask());      // 将任务添加到任务组中
+		}
+		v_TaskGroup.startupAllTask();               // 执行任务组
+	}
+```
+
+
+
 ### 线程池参数配置
 ```java
 	// 以下均为默认值
