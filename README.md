@@ -1,7 +1,7 @@
 # hy.common.tpool
 
 
-![image](Relation.png)
+![image](images/Relation.png)
 
 
 
@@ -59,6 +59,8 @@
 ```java
 	ThreadPool.setWatch(true);   // 默认为：false
 ```
+![image](images/ThreadPoolWatch.png)
+
 
 
 引用 https://github.com/HY-ZhengWei/hy.common.base 类库
