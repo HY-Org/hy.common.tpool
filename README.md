@@ -54,4 +54,11 @@
 ```
 
 
+
+### 打开线程池监控界面
+```java
+	ThreadPool.setWatch(true);   // 默认为：false
+```
+
+
 引用 https://github.com/HY-ZhengWei/hy.common.base 类库
