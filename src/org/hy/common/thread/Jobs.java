@@ -36,9 +36,6 @@ public final class Jobs extends Job
      */
     private Counter<String>      jobMonitor;
     
-    /** 任务组 */
-    private TaskGroup            taskGroup;
-    
     /** 最小轮询间隔类型 */
     private int                  minIntervalType;
     
@@ -47,7 +44,6 @@ public final class Jobs extends Job
     public Jobs()
     {
         this.jobList    = new ArrayList<Job>();
-        this.taskGroup  = new TaskGroup(super.getTaskType());
         this.jobMonitor = new Counter<String>();
         this.setDesc("Jobs Total scheduling");
     }
@@ -62,7 +58,7 @@ public final class Jobs extends Job
         
         this.minIntervalType = this.jobList.get(0).getIntervalType();
         
-        this.taskGroup.startTask(this);
+        TaskPool.putTask(this);
     }
     
     
@@ -224,7 +220,7 @@ public final class Jobs extends Job
         i_Job.setMyJobs(this);
         if ( addMonitor(i_Job) )
         {
-            this.taskGroup.startTask(i_Job);
+            TaskPool.putTask(i_Job);
         }
     }
     
