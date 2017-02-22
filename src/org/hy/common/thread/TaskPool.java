@@ -89,7 +89,7 @@ public class TaskPool
 	 * 
 	 * @return
 	 */
-	public static synchronized Task<?> getTask()
+	public synchronized static Task<?> getTask()
 	{
 	    Task<?> v_Task = getInstance().getQueue().get();
 	    
@@ -215,10 +215,12 @@ public class TaskPool
 		public final static String $TaskType$ = "ScanTaskPool";
 		
 		/** 空闲开始时间 */
-		private long    idleBeginTime;
+		private long          idleBeginTime;
 		
 		/** 扫描任务是否运行中 */
-	    private boolean scanIsRunning;
+	    private boolean       scanIsRunning;
+	    
+//	    private StringBuilder buffer;
 
 		
 		
@@ -228,6 +230,7 @@ public class TaskPool
 			
 			this.idleBeginTime = Date.getNowTime().getTime();
 			this.scanIsRunning = true;
+//			this.buffer        = new StringBuilder();
 		}
 		
 		
@@ -237,14 +240,26 @@ public class TaskPool
 		{
 			if ( TaskPool.size() >= 1 )
 			{
-				ThreadBase v_ThreadBase = ThreadPool.getThreadInstance(TaskPool.getTask() ,true);
-				v_ThreadBase.startupAndExecuteTask();
+			    Task<?> v_Task = TaskPool.getTask();
+			    if ( v_Task != null )
+			    {
+    				ThreadBase v_ThreadBase = ThreadPool.getThreadInstance(v_Task ,true);
+    				v_ThreadBase.startupAndExecuteTask();
+//    				this.buffer.append(Date.getNowTime().getFullMilli()).append("\t")
+//    				           .append(v_ThreadBase.getThreadNo())
+//    				           .append("\t任务号:").append(v_Task.getTaskNo()).append("\n");
+			    }
+			    
 				this.refreshWatchInfo();
-				
 				idleBeginTime = Date.getNowTime().getTime();
 			}
 			else
 			{
+//			    if ( !Help.isNull(this.buffer.toString()) )
+//			    {
+//			        System.out.println(this.buffer.toString());
+//			        this.buffer = new StringBuilder();
+//			    }
 				ThreadPool.sleep(100);
 				
 				// 当空闲超过5分钟后，退出 "永远循环"

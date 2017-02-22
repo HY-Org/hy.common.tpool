@@ -152,6 +152,7 @@ public class TaskGroup
 	    for (Task<?> v_Task : this.taskList)
 	    {
 	        v_Task.stopTasksNoExecute();
+	        this.taskFinish(v_Task);
 	    }
 	}
 	
@@ -164,7 +165,7 @@ public class TaskGroup
 	 * 
 	 * @param i_Task
 	 */
-	public void taskFinish(Task<?> i_Task)
+	public synchronized void taskFinish(Task<?> i_Task)
 	{
 		// 任务组已标记完成，就不在接收每个任务的报告了。
 		if ( this.isTasksFinish() )
@@ -176,25 +177,28 @@ public class TaskGroup
 		int v_Size = this.taskList.size();
 		
 		this.plusFinishSize();
-		System.out.println(i_Task.getTaskName() + "  " + i_Task.getThreadNo() + "  " + this.finishSize);
+		// System.out.println(i_Task.getTaskName() + "  " + i_Task.getThreadNo() + "  " + this.finishSize);
 		
 		
 		if ( this.finishSize > 0 && this.finishSize == v_Size )
 		{
-			this.taskGroupEvent.setCompleteSize(this.finishSize);
-			this.taskGroupEvent.setTasks(this.taskList.iterator());
-			this.taskGroupEvent.setEndTime(new Date());
-			
-			try
-			{
-				this.tasksIsFinish = true;
-				
-				this.fireFinishAllTaskListener(this.taskGroupEvent);
-			}
-			catch (Exception exce)
-			{
-				exce.printStackTrace();
-			}
+		    this.tasksIsFinish = true;
+		    
+		    if ( this.taskGroupEvent != null )
+		    {
+    			this.taskGroupEvent.setCompleteSize(this.finishSize);
+    			this.taskGroupEvent.setTasks(this.taskList.iterator());
+    			this.taskGroupEvent.setEndTime(new Date());
+    			
+    			try
+    			{
+    				this.fireFinishAllTaskListener(this.taskGroupEvent);
+    			}
+    			catch (Exception exce)
+    			{
+    				exce.printStackTrace();
+    			}
+		    }
 			
 			this.taskGroupIsFinish = true;
 			this.finishSize        = 0;

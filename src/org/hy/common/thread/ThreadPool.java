@@ -281,7 +281,7 @@ public class ThreadPool
 	 * @param i_IdleTimeKill  空闲多少时间后线程自毁(单位：秒) 默认为：60秒
 	 * @return
 	 */
-	protected static ThreadBase getIdleThread(Task<?> i_TaskObject ,long i_IntervalTime ,long i_IdleTimeKill)
+	protected synchronized static ThreadBase getIdleThread(Task<?> i_TaskObject ,long i_IntervalTime ,long i_IdleTimeKill)
 	{
 		// 其实在 IdleThreadPool.get() 内部也有 size() == 0 的判断
 		// 但那是 synchronized 的，在此添加判断，可以提高性能与速度
