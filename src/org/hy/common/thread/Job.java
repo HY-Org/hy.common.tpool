@@ -442,6 +442,12 @@ public class Job extends Task<Object> implements Comparable<Job>
             }
         }
     }
+    
+    
+    public String toString()
+    {
+        return this.getTaskDesc();
+    }
 
 }
 
