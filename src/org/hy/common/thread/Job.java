@@ -154,6 +154,7 @@ public class Job extends Task<Object> implements Comparable<Job>
             exce.printStackTrace();
         }
         
+        // 注意：delMonitor()方法不要加同步锁。否则会出现线程阻塞
         this.jobs.delMonitor(this);
         this.finishTask();
     }
