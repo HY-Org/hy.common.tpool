@@ -233,6 +233,9 @@ public final class Jobs extends Job
     
     
     
+    /**
+     * 注意：delMonitor()方法及monitor()方法不要加同步锁。否则会出现线程阻塞
+     */
     public void delMonitor(Job i_Job)
     {
         this.monitor(i_Job ,-1);
@@ -249,7 +252,7 @@ public final class Jobs extends Job
      * @param i_Type  1:添加监控   -1:删除监控 
      * @return
      */
-    private synchronized boolean monitor(Job i_Job ,int i_Type)
+    private boolean monitor(Job i_Job ,int i_Type)
     {
         if ( Help.isNull(i_Job.getCode()) )
         {

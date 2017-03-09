@@ -35,30 +35,22 @@ public class JU_Jobs
         XJava.parserAnnotation("org.hy.common.thread.junit.JU_Jobs");
         
         Jobs v_Jobs  = new Jobs();
-        Job  v_Job01 = new Job();
-        Job  v_Job02 = new Job();
+        for (int i=1; i<=10; i++)
+        {
+            Job v_Job = new Job();
+            
+            v_Job.setCode("TEST_" + i);
+            v_Job.setName("测试" + i);
+            v_Job.setIntervalType(Job.$IntervalType_Minute);
+            v_Job.setIntervalLen(1);
+            v_Job.setStartTime("2014-01-01 00:00:00");
+            v_Job.setXjavaID("JU_Jobs");
+            v_Job.setMethodName("test_Job_Execute");
+            v_Job.setInitExecute(true);
+            
+            v_Jobs.addJob(v_Job);
+        }
         
-        v_Job01.setCode("TEST_001");
-        v_Job01.setName("测试A");
-        v_Job01.setIntervalType(Job.$IntervalType_Minute);
-        v_Job01.setIntervalLen(1);
-        v_Job01.setStartTime("2014-01-01 00:00:00");
-        v_Job01.setXjavaID("JU_Jobs");
-        v_Job01.setMethodName("test_Job_Execute");
-        v_Job01.setInitExecute(true);
-        
-        v_Job02.setCode("TEST_002");
-        v_Job02.setName("测试B");
-        v_Job02.setIntervalType(Job.$IntervalType_Minute);
-        v_Job02.setIntervalLen(1);
-        v_Job02.setStartTime("2014-01-01 00:00:30");
-        v_Job02.setXjavaID("JU_Jobs");
-        v_Job02.setMethodName("test_Job_Execute");
-        v_Job02.setInitExecute(true);
-        
-        
-        v_Jobs.addJob(v_Job01);
-        v_Jobs.addJob(v_Job02);
         v_Jobs.startup();
     }
     
