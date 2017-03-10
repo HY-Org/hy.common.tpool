@@ -35,7 +35,7 @@ public class JU_Jobs
         XJava.parserAnnotation("org.hy.common.thread.junit.JU_Jobs");
         
         Jobs v_Jobs  = new Jobs();
-        for (int i=1; i<=10; i++)
+        for (int i=1; i<=2; i++)
         {
             Job v_Job = new Job();
             
@@ -51,6 +51,18 @@ public class JU_Jobs
             v_Jobs.addJob(v_Job);
         }
         
+        Job v_Job = new Job();
+        v_Job.setCode("TEST_" + 0);
+        v_Job.setName("测试" + 0);
+        v_Job.setIntervalType(Job.$IntervalType_Minute);
+        v_Job.setIntervalLen(1);
+        v_Job.setStartTime("2014-01-01 00:00:00");
+        v_Job.setXjavaID("JU_Jobs");
+        v_Job.setMethodName("test_Job_Execute02");
+        v_Job.setInitExecute(true);
+        
+        v_Jobs.addJob(v_Job);
+        
         v_Jobs.startup();
     }
     
@@ -60,6 +72,13 @@ public class JU_Jobs
     {
         ThreadPool.sleep(5 * 1000);
         System.out.println("Job Time: " + new Date());
+    }
+    
+    
+    public void test_Job_Execute02()
+    {
+        ThreadPool.sleep(6 * 1000);
+        System.out.println();
     }
     
 }
