@@ -56,11 +56,11 @@ public final class Jobs extends Job
     {
         Help.toSort(this.jobList ,"intervalType");
         
-        this.minIntervalType = this.jobList.get(0).getIntervalType();
-        
         // 遍历初始一次所有Job的下一次执行时间，防止首次执行时等待2倍的间隔时长
         if ( !Help.isNull(this.jobList) )
         {
+            this.minIntervalType = this.jobList.get(0).getIntervalType();
+            
             final Date v_Now = new Date();
             for (Job v_Job : this.jobList)
             {
