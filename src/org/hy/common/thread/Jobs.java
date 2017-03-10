@@ -58,6 +58,16 @@ public final class Jobs extends Job
         
         this.minIntervalType = this.jobList.get(0).getIntervalType();
         
+        // 遍历初始一次所有Job的下一次执行时间，防止首次执行时等待2倍的间隔时长
+        if ( !Help.isNull(this.jobList) )
+        {
+            final Date v_Now = new Date();
+            for (Job v_Job : this.jobList)
+            {
+                v_Job.getNextTime(v_Now);
+            }
+        }
+        
         TaskPool.putTask(this);
     }
     
@@ -154,7 +164,8 @@ public final class Jobs extends Job
             }
             else
             {
-                Thread.sleep(1000 * (60 - Date.getNowTime().getSeconds()));
+                Date v_Now = new Date();
+                Thread.sleep(1000 * (59 - v_Now.getSeconds()) + (1000 - v_Now.getMilliSecond()));
             }
         }
         catch (Exception exce)
