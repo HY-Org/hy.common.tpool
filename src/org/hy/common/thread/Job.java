@@ -18,7 +18,9 @@ import org.hy.common.Help;
  * @version     v1.0  
  *              v2.0  2014-07-21：融合XJava、任务池、线程池的功能
  *              v3.0  2015-11-03：是否在初始时(即添加到Jobs时)，就执行一次任务
- *              v4.0  2016-07-08: 支持轮询间隔：秒
+ *              v4.0  2016-07-08：支持轮询间隔：秒
+ *              v5.0  2017-07-03：添加：1. 最后一次执行时间的记录。
+ *                                     2. toString()方法中显示出下次的执行时间
  */
 public class Job extends Task<Object> implements Comparable<Job>
 {
@@ -72,6 +74,9 @@ public class Job extends Task<Object> implements Comparable<Job>
     /** 下次时间 */
     private Date           nextTime;
     
+    /** 最后一次的执行时间 */
+    private Date           lastTime;
+    
     /** XJava对象标识 */
     private String         xjavaID;
     
@@ -108,6 +113,7 @@ public class Job extends Task<Object> implements Comparable<Job>
         this.taskCount       = 1;
         this.isInitExecute   = false;
         this.isAtOnceExecute = false;
+        this.lastTime        = null;
     }
     
     
@@ -147,6 +153,7 @@ public class Job extends Task<Object> implements Comparable<Job>
         
         try
         {
+            this.lastTime = new Date();
             (new Execute(v_Object ,this.methodName.trim())).start();
         }
         catch (Exception exce)
@@ -422,6 +429,27 @@ public class Job extends Task<Object> implements Comparable<Job>
         this.isAtOnceExecute = isAtOnceExecute;
     }
 
+    
+    /**
+     * 获取：最后一次的执行时间
+     */
+    public Date getLastTime()
+    {
+        return lastTime;
+    }
+
+    
+    /**
+     * 设置：最后一次的执行时间
+     * 
+     * @param lastTime 
+     */
+    public void setLastTime(Date lastTime)
+    {
+        this.lastTime = lastTime;
+    }
+    
+
 
     public int compareTo(Job i_Other)
     {
@@ -447,7 +475,14 @@ public class Job extends Task<Object> implements Comparable<Job>
     
     public String toString()
     {
-        return this.getTaskDesc();
+        if ( this.nextTime == null )
+        {
+            return this.getTaskDesc();
+        }
+        else
+        {
+            return this.nextTime.getFull() + " " + this.getTaskDesc();
+        }
     }
 
 }
