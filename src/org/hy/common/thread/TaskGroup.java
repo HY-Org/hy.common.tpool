@@ -180,7 +180,7 @@ public class TaskGroup
 		// System.out.println(i_Task.getTaskName() + "  " + i_Task.getThreadNo() + "  " + this.finishSize);
 		
 		
-		if ( this.finishSize > 0 && this.finishSize == v_Size )
+		if ( this.finishSize > 0 && this.finishSize >= v_Size )
 		{
 		    this.tasksIsFinish = true;
 		    
@@ -202,10 +202,6 @@ public class TaskGroup
 			
 			this.taskGroupIsFinish = true;
 			this.finishSize        = 0;
-		}
-		else if ( this.finishSize > 0 && this.finishSize > v_Size )
-		{
-			this.finishSize = 0;
 		}
 	}
 	
