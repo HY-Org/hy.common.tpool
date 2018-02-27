@@ -152,11 +152,17 @@
 
 
 
-### 打开线程池监控界面
+### 桌面版：线程池监控界面
 ```java
 	ThreadPool.setWatch(true);          // 默认为：false
 ```
 ![image](images/ThreadPoolWatch.png)
+
+
+
+### 网页版：线程池监控界面（支持集群）
+访问网址格式为：http://IP:Port/服务名/analyses/analyseObject?ThreadPool=Y&cluster=Y
+![image](images/ThreadPoolWatch_Web.png)
 
 
 
