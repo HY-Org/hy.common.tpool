@@ -1,5 +1,6 @@
 package org.hy.common.thread;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
@@ -553,8 +554,32 @@ public class ThreadPool
 	 */
 	public static String showInfo()
 	{
-		return "Total: " +  getThreadCount() + "  Idle: " + getIdleThreadCount() + "  Active: " + getActiveThreadCount();
+		return "Total: " + getThreadCount() + "  Idle: " + getIdleThreadCount() + "  Active: " + getActiveThreadCount();
 	}
+	
+	
+	
+	/**
+	 * 获取线程池监控信息
+	 * 
+	 * @author      ZhengWei(HY)
+	 * @createDate  2018-02-26
+	 * @version     v1.0
+	 *
+	 * @return
+	 */
+	public static List<ThreadReport> getThreadReports()
+	{
+	    List<ThreadReport> v_Datas = new ArrayList<ThreadReport>();
+	    
+	    for (ThreadBase v_ThreadBase : THREADPOOL)
+	    {
+	        v_Datas.add(new ThreadReport(v_ThreadBase));
+	    }
+	    
+	    return v_Datas;
+	}
+	
 	
 	
 	/**
