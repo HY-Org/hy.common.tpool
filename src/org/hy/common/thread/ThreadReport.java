@@ -28,6 +28,9 @@ public class ThreadReport extends SerializableDef
     /** 累计用时 */
     private long   totalTime;
     
+    /** 最后更新时间 */
+    private String lastTime;
+    
     /** 运行状态 */
     private String runStatus;
     
@@ -51,6 +54,28 @@ public class ThreadReport extends SerializableDef
         {
             this.taskName = "";
             this.taskDesc = "";
+        }
+        
+        if ( null == i_ThreadBase.getTaskStartTime()
+          && null == i_ThreadBase.getTaskEndTime() )
+        {
+            this.lastTime = "";
+        }
+        else if ( null == i_ThreadBase.getTaskStartTime() )
+        {
+            this.lastTime = i_ThreadBase.getTaskEndTime().getFull();
+        }
+        else if ( null == i_ThreadBase.getTaskEndTime() )
+        {
+            this.lastTime = i_ThreadBase.getTaskStartTime().getFull();
+        }
+        else if ( i_ThreadBase.getTaskStartTime().getTime() >= i_ThreadBase.getTaskEndTime().getTime() )
+        {
+            this.lastTime = i_ThreadBase.getTaskStartTime().getFull();
+        }
+        else
+        {
+            this.lastTime = i_ThreadBase.getTaskEndTime().getFull();
         }
         
         this.threadNo  = i_ThreadBase.getThreadNo();
@@ -89,8 +114,30 @@ public class ThreadReport extends SerializableDef
         return totalTime;
     }
     
+    
+    
+    /**
+     * 获取：最后更新时间
+     */
+    public String getLastTime()
+    {
+        return lastTime;
+    }
+    
 
     
+    /**
+     * 设置：最后更新时间
+     * 
+     * @param lastTime 
+     */
+    public void setLastTime(String lastTime)
+    {
+        this.lastTime = lastTime;
+    }
+    
+
+
     /**
      * 获取：运行状态
      */
