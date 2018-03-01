@@ -202,6 +202,12 @@ public class ThreadBase
 			this.idleTimeKill = idleTimeKill;
 		}
 	}
+	
+	
+	public String getThreadRunStatusName()
+	{
+	    return threadRunStatus.getName();
+	}
 
 
 	public synchronized ThreadRunStatus getThreadRunStatus() 
