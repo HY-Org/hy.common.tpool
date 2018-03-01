@@ -55,7 +55,7 @@ public class ThreadReport extends SerializableDef
         
         this.threadNo  = i_ThreadBase.getThreadNo();
         this.totalTime = i_ThreadBase.getTotalTime();
-        this.runStatus = i_ThreadBase.getThreadRunStatus().getName();
+        this.runStatus = i_ThreadBase.getThreadRunStatusName();
         this.execCount = i_ThreadBase.getExecuteTaskCount();
     }
     
