@@ -1,6 +1,10 @@
 package org.hy.common.thread;
 
+import java.util.Iterator;
+import java.util.Map;
+
 import org.hy.common.xml.SerializableDef;
+import org.hy.common.xml.XJava;
 
 
 
@@ -42,7 +46,28 @@ public class JobReport extends SerializableDef
     {
         this.jobID       = i_JobID;
         this.intervalLen = i_Job.getIntervalLen() + "";
-        if ( i_Job.isAddJobs() )
+        this.jobDesc     = i_Job.getTaskDesc();
+        
+        boolean             v_IsAddJobs = false;
+        Map<String ,Object> v_JobsMap   = XJava.getObjects(Jobs.class ,false);
+        for (Object v_Item : v_JobsMap.values())
+        {
+            Jobs          v_Jobs    = (Jobs)v_Item;
+            Iterator<Job> v_JobIter = v_Jobs.getJobs();
+            
+            while (v_JobIter.hasNext())
+            {
+                if ( i_Job == v_JobIter.next() )
+                {
+                    v_IsAddJobs = true;
+                    break;
+                }
+            }
+            
+            if ( v_IsAddJobs ) break;
+        }
+        
+        if ( v_IsAddJobs )
         {
             this.lastTime = i_Job.getLastTime() == null ? "-" : i_Job.getLastTime().getFull();
             this.nextTime = i_Job.getNextTime() == null ? "-" : i_Job.getNextTime().getFull();
@@ -52,7 +77,6 @@ public class JobReport extends SerializableDef
             this.lastTime = "-";
             this.nextTime = "-";
         }
-        this.jobDesc     = i_Job.getTaskDesc();
         
         switch ( i_Job.getIntervalType() )
         {
