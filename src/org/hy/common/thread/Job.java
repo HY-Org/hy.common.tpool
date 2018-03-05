@@ -388,6 +388,21 @@ public class Job extends Task<Object> implements Comparable<Job>
     {
         this.jobs = jobs;
     }
+    
+    
+    /**
+     * 是否添加到任务执行程序中。只有添加的才能定期执行，否则等同于手工执行的任务。
+     * 
+     * @author      ZhengWei(HY)
+     * @createDate  2018-03-05
+     * @version     v1.0
+     *
+     * @return
+     */
+    public boolean isAddJobs()
+    {
+        return !Help.isNull(this.jobs);
+    }
 
     
     /**

@@ -42,8 +42,16 @@ public class JobReport extends SerializableDef
     {
         this.jobID       = i_JobID;
         this.intervalLen = i_Job.getIntervalLen() + "";
-        this.lastTime    = i_Job.getLastTime() == null ? "-" : i_Job.getLastTime().getFull();
-        this.nextTime    = i_Job.getNextTime() == null ? "-" : i_Job.getNextTime().getFull();
+        if ( i_Job.isAddJobs() )
+        {
+            this.lastTime = i_Job.getLastTime() == null ? "-" : i_Job.getLastTime().getFull();
+            this.nextTime = i_Job.getNextTime() == null ? "-" : i_Job.getNextTime().getFull();
+        }
+        else
+        {
+            this.lastTime = "-";
+            this.nextTime = "-";
+        }
         this.jobDesc     = i_Job.getTaskDesc();
         
         switch ( i_Job.getIntervalType() )
