@@ -16,6 +16,7 @@ import org.hy.common.xml.XJava;
  * @author      ZhengWei(HY)
  * @createDate  2018-02-28
  * @version     v1.0
+ *              v2.0  2018-04-11  添加：执行次数的统计属性
  */
 public class JobReport extends SerializableDef
 {
@@ -23,22 +24,25 @@ public class JobReport extends SerializableDef
     private static final long serialVersionUID = 467967958670829923L;
 
     /** Job ID */
-    private String jobID;
+    private String  jobID;
     
     /** 间隔类型 */
-    private String intervalType;
+    private String  intervalType;
     
     /** 间隔长度 */
-    private String intervalLen;
+    private String  intervalLen;
     
     /** 最后执行时间 */
-    private String lastTime;
+    private String  lastTime;
     
     /** 计划执行时间 */
-    private String nextTime;
+    private String  nextTime;
+    
+    /** 执行次数 */
+    private Integer runCount;
     
     /** 描述 */
-    private String jobDesc;
+    private String  jobDesc;
     
     
     
@@ -47,6 +51,7 @@ public class JobReport extends SerializableDef
         this.jobID       = i_JobID;
         this.intervalLen = i_Job.getIntervalLen() + "";
         this.jobDesc     = i_Job.getTaskDesc();
+        this.runCount    = i_Job.getRunCount();
         
         boolean             v_IsAddJobs = false;
         Map<String ,Object> v_JobsMap   = XJava.getObjects(Jobs.class ,false);
@@ -213,8 +218,28 @@ public class JobReport extends SerializableDef
     {
         this.nextTime = nextTime;
     }
+    
+    
+    /**
+     * 获取：执行次数
+     */
+    public Integer getRunCount()
+    {
+        return runCount;
+    }
 
     
+    /**
+     * 设置：执行次数
+     * 
+     * @param runCount 
+     */
+    public void setRunCount(Integer runCount)
+    {
+        this.runCount = runCount;
+    }
+
+
     /**
      * 设置：描述
      * 

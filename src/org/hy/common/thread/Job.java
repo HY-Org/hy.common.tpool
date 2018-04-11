@@ -21,6 +21,7 @@ import org.hy.common.Help;
  *              v4.0  2016-07-08：支持轮询间隔：秒
  *              v5.0  2017-07-03：添加：1. 最后一次执行时间的记录。
  *                                     2. toString()方法中显示出下次的执行时间
+ *              v5.1  2018-04-11  添加：执行次数的统计属性
  */
 public class Job extends Task<Object> implements Comparable<Job>
 {
@@ -94,6 +95,9 @@ public class Job extends Task<Object> implements Comparable<Job>
     
     private Jobs           jobs;
     
+    /** 执行次数 */
+    private int            runCount;
+    
     
     
     private synchronized int GetSerialNo()
@@ -114,6 +118,7 @@ public class Job extends Task<Object> implements Comparable<Job>
         this.isInitExecute   = false;
         this.isAtOnceExecute = false;
         this.lastTime        = null;
+        this.runCount        = 0;
     }
     
     
@@ -154,6 +159,7 @@ public class Job extends Task<Object> implements Comparable<Job>
         try
         {
             this.lastTime = new Date();
+            this.runCount++;
             (new Execute(v_Object ,this.methodName.trim())).start();
         }
         catch (Exception exce)
@@ -448,6 +454,28 @@ public class Job extends Task<Object> implements Comparable<Job>
     public void setLastTime(Date lastTime)
     {
         this.lastTime = lastTime;
+    }
+    
+
+    
+    /**
+     * 获取：执行次数
+     */
+    public int getRunCount()
+    {
+        return runCount;
+    }
+    
+
+    
+    /**
+     * 设置：执行次数
+     * 
+     * @param runCount 
+     */
+    public void setRunCount(int runCount)
+    {
+        this.runCount = runCount;
     }
     
 
