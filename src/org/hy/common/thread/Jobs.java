@@ -140,6 +140,22 @@ public final class Jobs extends Job
         this.jobList.remove(i_Job);
         this.jobMonitor.remove(i_Job.getCode());
     }
+    
+    
+    
+    /**
+     * 删除所有定时任务
+     * 
+     * @author      ZhengWei(HY)
+     * @createDate  2018-05-22
+     * @version     v1.0
+     *
+     */
+    public synchronized void delJobs()
+    {
+        this.jobList.clear();
+        this.jobMonitor.clear();
+    }
 
     
     
