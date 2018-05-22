@@ -3,7 +3,6 @@ package org.hy.common.thread;
 import java.util.Iterator;
 import java.util.Map;
 
-import org.hy.common.Date;
 import org.hy.common.xml.SerializableDef;
 import org.hy.common.xml.XJava;
 
@@ -44,7 +43,7 @@ public class JobReport extends SerializableDef
     private Integer runCount;
     
     /** 执行日志。记录最后32次内的执行时间 */
-    private Date[]  runLogs;
+    private Object []  runLogs;
     
     /** 描述 */
     private String  jobDesc;
@@ -57,7 +56,7 @@ public class JobReport extends SerializableDef
         this.intervalLen = i_Job.getIntervalLen() + "";
         this.jobDesc     = i_Job.getTaskDesc();
         this.runCount    = i_Job.getRunCount();
-        this.runLogs     = (Date [])i_Job.getRunLogs().getArray();
+        this.runLogs     = i_Job.getRunLogs().getArray();
         
         boolean             v_IsAddJobs = false;
         Map<String ,Object> v_JobsMap   = XJava.getObjects(Jobs.class ,false);
@@ -249,7 +248,7 @@ public class JobReport extends SerializableDef
     /**
      * 获取：执行日志。记录最后32次内的执行时间
      */
-    public Date [] getRunLogs()
+    public Object [] getRunLogs()
     {
         return runLogs;
     }
@@ -260,7 +259,7 @@ public class JobReport extends SerializableDef
      * 
      * @param runLogs 
      */
-    public void setRunLogs(Date [] runLogs)
+    public void setRunLogs(Object [] runLogs)
     {
         this.runLogs = runLogs;
     }
