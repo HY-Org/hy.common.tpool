@@ -3,6 +3,7 @@ package org.hy.common.thread;
 import java.util.Iterator;
 import java.util.Map;
 
+import org.hy.common.Date;
 import org.hy.common.xml.SerializableDef;
 import org.hy.common.xml.XJava;
 
@@ -17,6 +18,7 @@ import org.hy.common.xml.XJava;
  * @createDate  2018-02-28
  * @version     v1.0
  *              v2.0  2018-04-11  添加：执行次数的统计属性
+ *              v3.0  2018-05-22  添加：执行历史日志
  */
 public class JobReport extends SerializableDef
 {
@@ -41,6 +43,9 @@ public class JobReport extends SerializableDef
     /** 执行次数 */
     private Integer runCount;
     
+    /** 执行日志。记录最后32次内的执行时间 */
+    private Date[]  runLogs;
+    
     /** 描述 */
     private String  jobDesc;
     
@@ -52,6 +57,7 @@ public class JobReport extends SerializableDef
         this.intervalLen = i_Job.getIntervalLen() + "";
         this.jobDesc     = i_Job.getTaskDesc();
         this.runCount    = i_Job.getRunCount();
+        this.runLogs     = (Date [])i_Job.getRunLogs().getArray();
         
         boolean             v_IsAddJobs = false;
         Map<String ,Object> v_JobsMap   = XJava.getObjects(Jobs.class ,false);
@@ -237,6 +243,26 @@ public class JobReport extends SerializableDef
     public void setRunCount(Integer runCount)
     {
         this.runCount = runCount;
+    }
+
+    
+    /**
+     * 获取：执行日志。记录最后32次内的执行时间
+     */
+    public Date [] getRunLogs()
+    {
+        return runLogs;
+    }
+
+    
+    /**
+     * 设置：执行日志。记录最后32次内的执行时间
+     * 
+     * @param runLogs 
+     */
+    public void setRunLogs(Date [] runLogs)
+    {
+        this.runLogs = runLogs;
     }
 
 
