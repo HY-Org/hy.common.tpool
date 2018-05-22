@@ -1,7 +1,7 @@
 package org.hy.common.thread;
 
 import org.hy.common.xml.XJava;
-
+import org.hy.common.Busway;
 import org.hy.common.Date;
 import org.hy.common.Execute;
 import org.hy.common.Help;
@@ -22,6 +22,7 @@ import org.hy.common.Help;
  *              v5.0  2017-07-03：添加：1. 最后一次执行时间的记录。
  *                                     2. toString()方法中显示出下次的执行时间
  *              v5.1  2018-04-11  添加：执行次数的统计属性
+ *              v5.2  2018-05-22  添加：执行历史日志
  */
 public class Job extends Task<Object> implements Comparable<Job>
 {
@@ -98,6 +99,9 @@ public class Job extends Task<Object> implements Comparable<Job>
     /** 执行次数 */
     private int            runCount;
     
+    /** 执行日志。记录最后32次内的执行时间 */
+    private Busway<Date>   runLogs;
+    
     
     
     private synchronized int GetSerialNo()
@@ -119,6 +123,7 @@ public class Job extends Task<Object> implements Comparable<Job>
         this.isAtOnceExecute = false;
         this.lastTime        = null;
         this.runCount        = 0;
+        this.runLogs         = new Busway<Date>(32);
     }
     
     
@@ -160,6 +165,7 @@ public class Job extends Task<Object> implements Comparable<Job>
         {
             this.lastTime = new Date();
             this.runCount++;
+            this.runLogs.put(this.lastTime);
             (new Execute(v_Object ,this.methodName.trim())).start();
         }
         catch (Exception exce)
@@ -476,6 +482,28 @@ public class Job extends Task<Object> implements Comparable<Job>
     public void setRunCount(int runCount)
     {
         this.runCount = runCount;
+    }
+    
+
+    
+    /**
+     * 获取：执行日志。记录最后32次内的执行时间
+     */
+    public Busway<Date> getRunLogs()
+    {
+        return runLogs;
+    }
+    
+
+    
+    /**
+     * 设置：执行日志。记录最后32次内的执行时间
+     * 
+     * @param runLogs 
+     */
+    public void setRunLogs(Busway<Date> runLogs)
+    {
+        this.runLogs = runLogs;
     }
     
 

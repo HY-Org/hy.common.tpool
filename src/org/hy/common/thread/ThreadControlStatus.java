@@ -16,7 +16,11 @@ import org.hy.common.ConstValue;
  */
 public class ThreadControlStatus extends ConstValue
 {
-	/** 此常量的常量类型 */
+    private static final long serialVersionUID = 5718400231945292203L;
+
+
+
+    /** 此常量的常量类型 */
 	private final static ConstValue $ConstType$          = ConstValue.newConstType("ThreadControlStatus");
 	
 	

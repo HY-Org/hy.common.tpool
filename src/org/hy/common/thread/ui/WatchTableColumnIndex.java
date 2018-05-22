@@ -14,7 +14,11 @@ import org.hy.common.ConstValue;
  */
 public class WatchTableColumnIndex extends ConstValue
 {
-	/** 此常量的常量类型 */
+    private static final long serialVersionUID = -2396781506212611549L;
+
+
+
+    /** 此常量的常量类型 */
 	private final static ConstValue $ConstType$               = ConstValue.newConstType("WatchTableColumnIndex");
 	
 	

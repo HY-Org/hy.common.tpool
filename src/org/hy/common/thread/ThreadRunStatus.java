@@ -16,7 +16,11 @@ import org.hy.common.ConstValue;
  */
 public class ThreadRunStatus extends ConstValue
 {
-	/** 此常量的常量类型 */
+    private static final long serialVersionUID = -4741594936411384692L;
+
+
+
+    /** 此常量的常量类型 */
 	private final static ConstValue $ConstType$         = ConstValue.newConstType("ThreadRunStatus");
 	
 	
