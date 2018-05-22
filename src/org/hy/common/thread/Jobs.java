@@ -18,9 +18,11 @@ import org.hy.common.Help;
  * @author      ZhengWei(HY)
  * @createDate  2013-12-16
  * @version     v1.0  
- *              v2.0  2014-07-21：融合XJava、任务池、线程池的功能
- *              v3.0  2015-11-03：是否在初始时(即添加到Jobs时)，就执行一次任务
- *              v4.0  2016-07-08：支持轮询间隔：秒
+ *              v2.0  2014-07-21：添加：融合XJava、任务池、线程池的功能
+ *              v3.0  2015-11-03：添加：是否在初始时(即添加到Jobs时)，就执行一次任务
+ *              v4.0  2016-07-08：添加：支持轮询间隔：秒
+ *              v5.0  2018-05-22：添加：预防因主机系统时间不精确，时间同步机制异常（如来回调整时间、时间跳跃、时间波动等），
+ *                                     造成定时任务重复执行的可能。
  */
 public final class Jobs extends Job
 {
@@ -224,7 +226,16 @@ public final class Jobs extends Job
                     
                     if ( v_NextTime.equalsYMDHM(v_Now) )
                     {
-                        this.executeJob(v_Job);
+                        if ( v_Job.getLastTime() == null )
+                        {
+                            this.executeJob(v_Job);
+                        }
+                        // 预防因主机系统时间不精确，时间同步机制异常（如来回调整时间、时间跳跃、时间波动等），
+                        // 造成定时任务重复执行的可能。  ZhengWei(HY) Add 2018-05-22
+                        else if ( !v_Job.getLastTime().equalsYMDHM(v_Now) && v_Job.getLastTime().differ(v_Now) < 0 )
+                        {
+                            this.executeJob(v_Job);
+                        }
                     }
                 }
                 catch (Exception exce)

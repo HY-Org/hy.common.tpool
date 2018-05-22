@@ -100,7 +100,7 @@ public class Job extends Task<Object> implements Comparable<Job>
     private int            runCount;
     
     /** 执行日志。记录最后32次内的执行时间 */
-    private Busway<Date>   runLogs;
+    private Busway<String> runLogs;
     
     
     
@@ -123,7 +123,7 @@ public class Job extends Task<Object> implements Comparable<Job>
         this.isAtOnceExecute = false;
         this.lastTime        = null;
         this.runCount        = 0;
-        this.runLogs         = new Busway<Date>(32);
+        this.runLogs         = new Busway<String>(32);
     }
     
     
@@ -165,7 +165,7 @@ public class Job extends Task<Object> implements Comparable<Job>
         {
             this.lastTime = new Date();
             this.runCount++;
-            this.runLogs.put(this.lastTime);
+            this.runLogs.put(this.lastTime.getFullMilli());
             (new Execute(v_Object ,this.methodName.trim())).start();
         }
         catch (Exception exce)
@@ -489,7 +489,7 @@ public class Job extends Task<Object> implements Comparable<Job>
     /**
      * 获取：执行日志。记录最后32次内的执行时间
      */
-    public Busway<Date> getRunLogs()
+    public Busway<String> getRunLogs()
     {
         return runLogs;
     }
@@ -501,7 +501,7 @@ public class Job extends Task<Object> implements Comparable<Job>
      * 
      * @param runLogs 
      */
-    public void setRunLogs(Busway<Date> runLogs)
+    public void setRunLogs(Busway<String> runLogs)
     {
         this.runLogs = runLogs;
     }
