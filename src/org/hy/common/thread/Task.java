@@ -63,6 +63,18 @@ public abstract class Task<O> implements Runnable
 	
 	/**
 	 * 执行任务的方法
+	 * 
+	 * 常规情况下：一定要在 execute()执行后，调用 this.finishTask(); 方法。
+	 *           即使 execute() 异常，也应当调用  this.finishTask(); 方法。
+	 *           所以，建议如下方法写代码
+	 *           try 
+	 *           {
+	 *               ... ...
+	 *           } 
+	 *           finally 
+	 *           {
+	 *               this.finishTask();
+	 *           }
 	 */
 	public abstract void execute();
 	

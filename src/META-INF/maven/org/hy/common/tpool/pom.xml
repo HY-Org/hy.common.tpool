@@ -35,7 +35,7 @@
 	<dependency>
 	    <groupId>org</groupId>
 	    <artifactId>hy.common.base</artifactId>
-	    <version>1.0.136</version>
+	    <version>1.0.138</version>
 	</dependency>
   </dependencies>
 </project>
