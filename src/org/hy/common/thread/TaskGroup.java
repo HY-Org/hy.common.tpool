@@ -224,6 +224,25 @@ public class TaskGroup
 	
 	
 	/**
+	 * 获取完成任务数。
+	 * 
+	 * 注意：在组完成时，此值会变为0值，它只是一个过程变量。
+	 *      当判定组完成时，建议用this.isTasksFinish()方法。
+	 * 
+	 * @author      ZhengWei(HY)
+	 * @createDate  2018-08-20
+	 * @version     v1.0
+	 *
+	 * @return
+	 */
+	public int getFinishSize()
+	{
+	    return this.finishSize;
+	}
+	
+	
+	
+	/**
 	 * 添加任务
 	 * 
 	 * @param i_Task
