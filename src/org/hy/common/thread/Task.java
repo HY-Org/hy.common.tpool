@@ -398,17 +398,17 @@ public abstract class Task<O> implements Runnable
 	 */
 	public void finishTask()
 	{
+	    if ( this.taskGroup != null )
+        {
+            this.taskGroup.taskFinish(this);
+        }
+	    
 		if ( this.thread != null )
 		{
 			this.thread.finishTask();
 		}
 		
 		this.isFinish = true;
-		
-		if ( this.taskGroup != null )
-		{
-			this.taskGroup.taskFinish(this);
-		}
 	}
 	
 	
@@ -466,10 +466,7 @@ public abstract class Task<O> implements Runnable
 		// 在判断是否“完成”后，再对线程进行处理，就是怕任务已完成了，但线程已分配给其它任务来使用，造成错误“停止”线程的问题
 		if ( !this.isFinish )
 		{
-			if ( this.thread != null )
-			{
-				this.thread.finishTask();
-			}
+		    finishTask();
 		}
 		
 		super.finalize();

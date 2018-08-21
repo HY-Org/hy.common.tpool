@@ -138,10 +138,7 @@ public class ThreadPool
 		
 		
 		i_TaskObject.ready();
-		
-		
 		ThreadBase v_ThreadBase = getIdleThread(i_TaskObject ,i_IntervalTime ,i_IdleTimeKill);
-		
 		
 		if ( v_ThreadBase != null )
 		{
@@ -169,6 +166,14 @@ public class ThreadPool
 				sleep(WaitResource);
 				
 				v_ThreadBase = getIdleThread(i_TaskObject ,i_IntervalTime ,i_IdleTimeKill);
+				
+				if ( v_ThreadBase == null )
+				{
+				    if ( ThreadPoolSize < MAXTHREAD )
+			        {
+			            return getNewThreadInstance(i_TaskObject ,i_IntervalTime ,i_IdleTimeKill);
+			        }
+				}
 			} 
 			while ( v_ThreadBase == null );
 			
