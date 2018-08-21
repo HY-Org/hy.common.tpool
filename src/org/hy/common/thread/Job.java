@@ -23,6 +23,7 @@ import org.hy.common.Help;
  *                                     2. toString()方法中显示出下次的执行时间
  *              v5.1  2018-04-11  添加：执行次数的统计属性
  *              v5.2  2018-05-22  添加：执行历史日志
+ *              v5.3  2018-08-21  修改：将xjavaID改为xid与XSQLNode统一，同时防止与接口 org.hy.common.XJavaID 中的方法冲突。
  */
 public class Job extends Task<Object> implements Comparable<Job>
 {
@@ -80,7 +81,7 @@ public class Job extends Task<Object> implements Comparable<Job>
     private Date           lastTime;
     
     /** XJava对象标识 */
-    private String         xjavaID;
+    private String         xid;
     
     /** 执行的方法名 */
     private String         methodName;
@@ -145,9 +146,9 @@ public class Job extends Task<Object> implements Comparable<Job>
      */
     public void execute()
     {
-        if ( Help.isNull(this.xjavaID) )
+        if ( Help.isNull(this.xid) )
         {
-            throw new NullPointerException("Job.getXjavaID() is null.");
+            throw new NullPointerException("Job.getXid() is null.");
         }
         
         if ( Help.isNull(this.methodName) )
@@ -155,10 +156,10 @@ public class Job extends Task<Object> implements Comparable<Job>
             throw new NullPointerException("Job.getMethodName() is null."); 
         }
         
-        Object v_Object = XJava.getObject(this.xjavaID.trim());
+        Object v_Object = XJava.getObject(this.xid.trim());
         if ( v_Object == null )
         {
-            throw new NullPointerException("Job.getXjavaID() = " + this.xjavaID + " XJava.getObject(...) is null.");
+            throw new NullPointerException("Job.getXid() = " + this.xid + " XJava.getObject(...) is null.");
         }
         
         try
@@ -372,15 +373,15 @@ public class Job extends Task<Object> implements Comparable<Job>
     }
     
     
-    public String getXjavaID()
+    public String getXid()
     {
-        return xjavaID;
+        return xid;
     }
 
 
-    public void setXjavaID(String xjavaID)
+    public void setXid(String i_Xid)
     {
-        this.xjavaID = xjavaID;
+        this.xid = i_Xid;
     }
 
     

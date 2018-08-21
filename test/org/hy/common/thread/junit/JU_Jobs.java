@@ -44,7 +44,7 @@ public class JU_Jobs
             v_Job.setIntervalType(Job.$IntervalType_Minute);
             v_Job.setIntervalLen(1);
             v_Job.setStartTime("2014-01-01 00:00:00");
-            v_Job.setXjavaID("JU_Jobs");
+            v_Job.setXid("JU_Jobs");
             v_Job.setMethodName("test_Job_Execute");
             v_Job.setInitExecute(true);
             
@@ -57,7 +57,7 @@ public class JU_Jobs
         v_Job.setIntervalType(Job.$IntervalType_Minute);
         v_Job.setIntervalLen(1);
         v_Job.setStartTime("2014-01-01 00:00:00");
-        v_Job.setXjavaID("JU_Jobs");
+        v_Job.setXid("JU_Jobs");
         v_Job.setMethodName("test_Job_Execute02");
         v_Job.setInitExecute(true);
         
