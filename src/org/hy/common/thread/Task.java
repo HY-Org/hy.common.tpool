@@ -26,7 +26,7 @@ public abstract class Task<O> implements Runnable
 	private   TaskGroup      taskGroup;
 	
 	/** 任务编号 */
-	protected int            taskNo;
+	protected long           taskNo;
 	
 	/** 任务的名称 */
 	protected String         taskName;
@@ -88,7 +88,7 @@ public abstract class Task<O> implements Runnable
 	 * 
 	 * @return
 	 */
-	public abstract int getSerialNo();
+	public abstract long getSerialNo();
 	
 	
 	
@@ -197,7 +197,7 @@ public abstract class Task<O> implements Runnable
 	 * 
 	 * @return
 	 */
-	public int getTaskNo() 
+	public long getTaskNo() 
 	{
 		return taskNo;
 	}

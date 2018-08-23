@@ -50,7 +50,7 @@ public class TaskTypeTotal
 	 * @param i_TaskType
 	 * @return
 	 */
-	public int getActiveCount(String i_TaskType)
+	public long getActiveCount(String i_TaskType)
 	{
 		if ( Help.isNull(i_TaskType) )
 		{
@@ -136,7 +136,7 @@ public class TaskTypeTotal
 		private String taskType;
 		
 		/** 活动的线程数 */
-		private int    activeCount;
+		private long   activeCount;
 		
 		
 		
@@ -153,7 +153,7 @@ public class TaskTypeTotal
 		}
 		
 		
-		public int getActiveCount()
+		public long getActiveCount()
 		{
 			return this.activeCount;
 		}
@@ -182,7 +182,7 @@ public class TaskTypeTotal
 		 * 
 		 * @param i_OperateType  设置类型 >= 1 为：添加； 其它为减少
 		 */
-		private synchronized void setActiveCount(int i_OperateType)
+		private synchronized void setActiveCount(long i_OperateType)
 		{
 			if ( i_OperateType >= 1 )
 			{

@@ -23,7 +23,7 @@ public abstract class ThreadTaskQueue<Que ,O> extends Task<O>
 	protected Queue<Que>          queue;
 	
 	/** 每次执行队列元素个数 */
-	protected int                 perExecuteCount;
+	protected long                perExecuteCount;
 	
 	
 	
@@ -67,7 +67,7 @@ public abstract class ThreadTaskQueue<Que ,O> extends Task<O>
 	 * 
 	 * @return
 	 */
-	public int sizeQueue()
+	public long sizeQueue()
 	{
 		return this.queue.size();
 	}
@@ -78,7 +78,7 @@ public abstract class ThreadTaskQueue<Que ,O> extends Task<O>
 	 */
 	public void execute() 
 	{
-		int v_Index = this.queue.size();
+		long v_Index = this.queue.size();
 		
 		if ( v_Index > this.perExecuteCount )
 		{
@@ -106,13 +106,13 @@ public abstract class ThreadTaskQueue<Que ,O> extends Task<O>
 
 
 
-	public int getPerExecuteCount() 
+	public long getPerExecuteCount() 
 	{
 		return perExecuteCount;
 	}
 
 	
-	public void setPerExecuteCount(int perExecuteCount) 
+	public void setPerExecuteCount(long perExecuteCount) 
 	{
 		if ( perExecuteCount <= 0 )
 		{

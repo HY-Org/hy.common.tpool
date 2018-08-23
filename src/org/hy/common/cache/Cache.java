@@ -102,7 +102,7 @@ public abstract class Cache<C ,O>
 	 * 
 	 * @return
 	 */
-	public abstract int size();
+	public abstract long size();
 	
 	
 	
@@ -369,7 +369,7 @@ public abstract class Cache<C ,O>
 
 
 		@Override
-		public int getSerialNo() 
+		public long getSerialNo() 
 		{
 			return GetSerialNo();
 		}

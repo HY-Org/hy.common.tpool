@@ -380,7 +380,7 @@ public class ThreadPool
 	 * 
 	 * @return
 	 */
-	public static int getActiveThreadCount()
+	public static long getActiveThreadCount()
 	{
 		return getThreadCount() - getIdleThreadCount();
 	}
@@ -391,7 +391,7 @@ public class ThreadPool
 	 * 
 	 * @return
 	 */
-	public static int getActiveThreadCount(String i_TaskType)
+	public static long getActiveThreadCount(String i_TaskType)
 	{
 		return TaskTypeTotal.getActiveCount(i_TaskType);
 	}
@@ -402,7 +402,7 @@ public class ThreadPool
 	 * 
 	 * @return
 	 */
-	public static int getIdleThreadCount()
+	public static long getIdleThreadCount()
 	{
 		return IdleThreadPool.size();
 	}

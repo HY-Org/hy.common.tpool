@@ -23,7 +23,7 @@ import org.hy.common.Queue;
 public class TaskPool 
 {
 
-	private static int      $SerialNo = 0;
+	private static long     $SerialNo = 0;
 	
 	private static TaskPool $TaskPool = new TaskPool();
 	
@@ -111,7 +111,7 @@ public class TaskPool
 	 * 
 	 * @return
 	 */
-	public static int size()
+	public static long size()
 	{
 		return getInstance().getQueue().size();
 	}
@@ -142,7 +142,7 @@ public class TaskPool
 	
 	
 	
-	private synchronized int GetSerialNo()
+	private synchronized long GetSerialNo()
 	{
 		return ++$SerialNo;
 	}
@@ -302,7 +302,7 @@ public class TaskPool
 
 
         @Override
-		public int getSerialNo() 
+		public long getSerialNo() 
 		{
 			return GetSerialNo();
 		}

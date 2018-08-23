@@ -35,7 +35,7 @@ public class ThreadReport extends SerializableDef
     private String runStatus;
     
     /** 执行次数 */
-    private int    execCount;
+    private long   execCount;
     
     /** 任务描述 */
     private String taskDesc;
@@ -151,7 +151,7 @@ public class ThreadReport extends SerializableDef
     /**
      * 获取：执行次数
      */
-    public int getExecCount()
+    public long getExecCount()
     {
         return execCount;
     }
@@ -221,7 +221,7 @@ public class ThreadReport extends SerializableDef
      * 
      * @param execCount 
      */
-    public void setExecCount(int execCount)
+    public void setExecCount(long execCount)
     {
         this.execCount = execCount;
     }

@@ -28,27 +28,27 @@ import org.hy.common.Help;
 public class Job extends Task<Object> implements Comparable<Job>
 {
     /** 间隔类型: 秒 */
-    public  static final int $IntervalType_Second = -2;
+    public  static final int  $IntervalType_Second = -2;
     
     /** 间隔类型: 分钟 */
-    public  static final int $IntervalType_Minute = 60;
+    public  static final int  $IntervalType_Minute = 60;
     
     /** 间隔类型: 小时 */
-    public  static final int $IntervalType_Hour   = 60 * $IntervalType_Minute;
+    public  static final int  $IntervalType_Hour   = 60 * $IntervalType_Minute;
     
     /** 间隔类型: 天 */
-    public  static final int $IntervalType_Day    = 24 * $IntervalType_Hour;
+    public  static final int  $IntervalType_Day    = 24 * $IntervalType_Hour;
     
     /** 间隔类型: 周 */
-    public  static final int $IntervalType_Week   = 7  * $IntervalType_Day;
+    public  static final int  $IntervalType_Week   = 7  * $IntervalType_Day;
     
     /** 间隔类型: 月 */
-    public  static final int $IntervalType_Month  = 1;
+    public  static final int  $IntervalType_Month  = 1;
     
     /** 间隔类型: 手工执行 */
-    public  static final int $IntervalType_Manual = -1;
+    public  static final int  $IntervalType_Manual = -1;
     
-    private static       int $SerialNo            = 0;
+    private static       long $SerialNo            = 0;
     
     
     
@@ -98,14 +98,14 @@ public class Job extends Task<Object> implements Comparable<Job>
     private Jobs           jobs;
     
     /** 执行次数 */
-    private int            runCount;
+    private long           runCount;
     
     /** 执行日志。记录最后32次内的执行时间 */
     private Busway<String> runLogs;
     
     
     
-    private synchronized int GetSerialNo()
+    private synchronized long GetSerialNo()
     {
         return ++$SerialNo;
     }
@@ -189,7 +189,7 @@ public class Job extends Task<Object> implements Comparable<Job>
      * 
      * @return
      */
-    public int getSerialNo()
+    public long getSerialNo()
     {
         return GetSerialNo();
     }
@@ -468,7 +468,7 @@ public class Job extends Task<Object> implements Comparable<Job>
     /**
      * 获取：执行次数
      */
-    public int getRunCount()
+    public long getRunCount()
     {
         return runCount;
     }
@@ -480,7 +480,7 @@ public class Job extends Task<Object> implements Comparable<Job>
      * 
      * @param runCount 
      */
-    public void setRunCount(int runCount)
+    public void setRunCount(long runCount)
     {
         this.runCount = runCount;
     }

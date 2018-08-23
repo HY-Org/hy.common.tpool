@@ -58,7 +58,7 @@ public class JU20120522_TaskPool
 		
 		
 		@Override
-		public int getSerialNo() 
+		public long getSerialNo() 
 		{
 			return GetSerialNo();
 		}

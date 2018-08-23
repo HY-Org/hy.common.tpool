@@ -15,11 +15,11 @@ import org.hy.common.thread.ThreadPool;
  */
 public class TestThreadTask extends Task<Object>
 {
-	private static int $SerialNo = 0;
+	private static long $SerialNo = 0;
 	
 	
 	
-	private synchronized int GetSerialNo()
+	private synchronized long GetSerialNo()
 	{
 		return ++$SerialNo;
 	}
@@ -58,7 +58,7 @@ public class TestThreadTask extends Task<Object>
 
 
 	@Override
-	public int getSerialNo() 
+	public long getSerialNo() 
 	{
 		return GetSerialNo();
 	}

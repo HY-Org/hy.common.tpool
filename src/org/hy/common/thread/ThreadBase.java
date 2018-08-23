@@ -17,7 +17,7 @@ import org.hy.common.thread.ui.WatchTableColumnIndex;
  */
 public class ThreadBase
 {
-	protected static int SERIALNO = 0;
+	protected static long SERIALNO = 0;
 	
 	
 	/** 线程编号 */
@@ -54,7 +54,7 @@ public class ThreadBase
 	protected long                     idleTimeKill;
 	
 	/** 执行任务次数 */
-	protected int                      executeTaskCount;
+	protected long                     executeTaskCount;
 	
 	/** 任务开始执行时间 */
 	protected Date                     taskStartTime;
@@ -73,7 +73,7 @@ public class ThreadBase
 	
 	
 	
-	protected synchronized static int getSerialNo()
+	protected synchronized static long getSerialNo()
 	{
 	    return ++SERIALNO;
 	}
@@ -144,7 +144,7 @@ public class ThreadBase
 	}
 
 
-	public int getExecuteTaskCount()
+	public long getExecuteTaskCount()
 	{
 		return this.executeTaskCount;
 	}
@@ -223,33 +223,46 @@ public class ThreadBase
 	 */
 	protected synchronized void setThreadRunStatus(ThreadRunStatus i_ThreadTaskRunStatus)
 	{
-		this.threadRunStatus = i_ThreadTaskRunStatus;
-		
-		
-		if ( this.threadRunStatus.equals(ThreadRunStatus.$Working) )
-		{
-			this.taskStartTime = new Date();
-			this.taskEndTime   = null;
-		}
-		else if ( this.threadRunStatus.equals(ThreadRunStatus.$Finish) )
-		{
-			this.taskEndTime = new Date();
-			this.totalTime   = this.totalTime + (this.taskEndTime.getTime() - this.taskStartTime.getTime());
-		}
-		
-		
-		if ( ThreadPool.isWatch() )
-		{
-			// 及时更新视窗化监视窗口的信息
-			ThreadPoolWatch.getInstance().updateRow(this.watchTableRowIndex ,WatchTableColumnIndex.$RunStatus ,this.threadRunStatus.toString());
-			
-			if ( this.threadRunStatus.equals(ThreadRunStatus.$Finish) )
-			{
-				ThreadPoolWatch.getInstance().updateRow(this.watchTableRowIndex ,WatchTableColumnIndex.$ExecCount ,String.valueOf(this.executeTaskCount));
-				ThreadPoolWatch.getInstance().updateRow(this.watchTableRowIndex ,WatchTableColumnIndex.$TotalTime ,this.getTotalTimeSec());
-				ThreadPoolWatch.getInstance().updateRow(this.watchTableRowIndex ,WatchTableColumnIndex.$TaskDesc ,this.taskObject.getTaskDesc());
-			}
-		}
+	    setThreadRunStatus_NoSync(i_ThreadTaskRunStatus);
+	}
+	
+	
+	/**
+	 * 内部使用的，并且调用此方法的父方法有同步锁synchronized，所以此方法不再添加同步锁synchronized。
+	 * 
+	 * @author      ZhengWei(HY)
+	 * @createDate  2018-08-23
+	 * @version     v1.0
+	 *
+	 * @param i_ThreadTaskRunStatus
+	 */
+	private void setThreadRunStatus_NoSync(ThreadRunStatus i_ThreadTaskRunStatus)
+	{
+	    this.threadRunStatus = i_ThreadTaskRunStatus;
+        
+        if ( this.threadRunStatus.equals(ThreadRunStatus.$Working) )
+        {
+            this.taskStartTime = new Date();
+            this.taskEndTime   = null;
+        }
+        else if ( this.threadRunStatus.equals(ThreadRunStatus.$Finish) )
+        {
+            this.taskEndTime = new Date();
+            this.totalTime   = this.totalTime + (this.taskEndTime.getTime() - this.taskStartTime.getTime());
+        }
+        
+        if ( ThreadPool.isWatch() )
+        {
+            // 及时更新视窗化监视窗口的信息
+            ThreadPoolWatch.getInstance().updateRow(this.watchTableRowIndex ,WatchTableColumnIndex.$RunStatus ,this.threadRunStatus.toString());
+            
+            if ( this.threadRunStatus.equals(ThreadRunStatus.$Finish) )
+            {
+                ThreadPoolWatch.getInstance().updateRow(this.watchTableRowIndex ,WatchTableColumnIndex.$ExecCount ,String.valueOf(this.executeTaskCount));
+                ThreadPoolWatch.getInstance().updateRow(this.watchTableRowIndex ,WatchTableColumnIndex.$TotalTime ,this.getTotalTimeSec());
+                ThreadPoolWatch.getInstance().updateRow(this.watchTableRowIndex ,WatchTableColumnIndex.$TaskDesc ,this.taskObject.getTaskDesc());
+            }
+        }
 	}
 
 	
@@ -480,7 +493,7 @@ public class ThreadBase
 			
 			if ( v_Ret )
 			{
-				this.setThreadRunStatus(ThreadRunStatus.$Finish);
+				this.setThreadRunStatus_NoSync(ThreadRunStatus.$Finish);
 				this.executeTaskCount++;
 				ThreadPool.addIdleThread(this);
 			}
@@ -491,7 +504,7 @@ public class ThreadBase
 			
 			if ( v_Ret )
 			{
-				this.setThreadRunStatus(ThreadRunStatus.$Rest);
+				this.setThreadRunStatus_NoSync(ThreadRunStatus.$Rest);
 				ThreadPool.addIdleThread(this);
 			}
 		}
@@ -511,7 +524,7 @@ public class ThreadBase
 			
 			if ( v_Ret )
 			{			
-				this.setThreadRunStatus(ThreadRunStatus.$Kill);
+				this.setThreadRunStatus_NoSync(ThreadRunStatus.$Kill);
 				
 				if ( this.taskObject != null )
 				{
@@ -731,9 +744,8 @@ public class ThreadBase
 					}
 					catch (Exception exce)
 					{
+					    exce.printStackTrace();
 						this.myThreadBase.rest();
-						
-						exce.printStackTrace();
 					}
 				}
 				

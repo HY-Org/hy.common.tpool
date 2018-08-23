@@ -40,7 +40,7 @@ public class JobReport extends SerializableDef
     private String  nextTime;
     
     /** 执行次数 */
-    private Integer runCount;
+    private Long    runCount;
     
     /** 执行日志。记录最后32次内的执行时间 */
     private Object []  runLogs;
@@ -228,7 +228,7 @@ public class JobReport extends SerializableDef
     /**
      * 获取：执行次数
      */
-    public Integer getRunCount()
+    public Long getRunCount()
     {
         return runCount;
     }
@@ -239,7 +239,7 @@ public class JobReport extends SerializableDef
      * 
      * @param runCount 
      */
-    public void setRunCount(Integer runCount)
+    public void setRunCount(Long runCount)
     {
         this.runCount = runCount;
     }

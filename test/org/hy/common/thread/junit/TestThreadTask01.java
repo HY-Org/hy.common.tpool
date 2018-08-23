@@ -67,7 +67,7 @@ public class TestThreadTask01 extends Task<Object>
 
 
 	@Override
-	public int getSerialNo()
+	public long getSerialNo()
 	{
 		return GetSerialNo();
 	}

@@ -32,7 +32,7 @@ public abstract class CacheRich<O> extends Cache<List<O> ,O>
 {
 	
 	/** 使用大小(收益) */
-	protected int                      incomeSize;
+	protected int incomeSize;
 	
 	
 	
@@ -144,7 +144,7 @@ public abstract class CacheRich<O> extends Cache<List<O> ,O>
 	 * @return
 	 */
 	@Override
-	public int size()
+	public long size()
 	{
 		return this.cache.size() - this.incomeSize;
 	}

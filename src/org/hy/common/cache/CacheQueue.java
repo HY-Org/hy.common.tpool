@@ -113,7 +113,7 @@ public abstract class CacheQueue<O> extends Cache<Queue<O> ,O>
 	 * @return
 	 */
 	@Override
-	public int size()
+	public long size()
 	{
 		return this.cache.size();
 	}
