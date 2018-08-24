@@ -110,7 +110,6 @@ public class ThreadPool
 	    ThreadBase v_ThreadBase = new ThreadBase(i_TaskObject ,i_IntervalTime ,i_IdleTimeKill);
 	    THREADPOOL.add(v_ThreadBase);
         ThreadPoolSize++;
-        MAXTHREAD = Math.max(MAXTHREAD ,ThreadPoolSize);
         TaskTypeTotal.active(i_TaskObject.getTaskType());
         
         if ( IsWatch )
