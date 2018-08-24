@@ -14,6 +14,7 @@ import org.hy.common.thread.ui.WatchTableColumnIndex;
  *
  * @author   ZhengWei(HY)
  * @version  V1.0  2011-06-08
+ *           V1.1  2018-08-24  修复：防止在队列中长时间等待的线程，在濒临死亡的一瞬间，被当作空闲线程使用
  */
 public class ThreadBase
 {
@@ -663,6 +664,28 @@ public class ThreadBase
 		
 		return false;
 	}
+	
+	
+	
+	/**
+	 * 设置内核线程，重新计算其空闲时间
+	 * 
+	 * @author      ZhengWei(HY)
+	 * @createDate  2018-08-24
+	 * @version     v1.0
+	 *
+	 * @return
+	 */
+	public boolean coreIdleTimeRecalculation()
+	{
+	    if ( this.coreThread != null )
+	    {
+	        this.coreThread.setIdleBeginTime(0);
+	        return true;
+	    }
+	    
+	    return false;
+	}
 
 	
 	
@@ -677,17 +700,19 @@ public class ThreadBase
 	{
 		private ThreadBase myThreadBase;
 		
+		private long       idleBeginTime;
+		
 			
 		public CoreThread(ThreadBase i_MyThreadBase)
 		{
-			this.myThreadBase = i_MyThreadBase;
+			this.myThreadBase  = i_MyThreadBase;
+			this.idleBeginTime = 0;
 		}
 		
 		
 		public void run()
 		{
-			long v_IdleBeginTime = 0;
-			
+		    this.idleBeginTime = 0;
 			
 			while ( this.myThreadBase.isRun() )
 			{
@@ -696,19 +721,25 @@ public class ThreadBase
 					try
 					{
 						// 记录空闲时间，并在空闲时间最大值后，线程自毁
-						if ( v_IdleBeginTime == 0 )
+						if ( this.idleBeginTime == 0 )
 						{
-							v_IdleBeginTime = System.currentTimeMillis();
+						    this.idleBeginTime = System.currentTimeMillis();
 							this.myThreadBase.setThreadRunStatus(ThreadRunStatus.$Rest);
 						}
 						else
 						{
 							// 判断是否达到空闲时间后线程自毁
-							if ( (System.currentTimeMillis() - v_IdleBeginTime) >= (this.myThreadBase.getIdleTimeKill() * 1000) )
+							if ( (System.currentTimeMillis() - this.idleBeginTime) >= (this.myThreadBase.getIdleTimeKill() * 1000) )
 							{
 								if ( this.myThreadBase.shutdown() )
 								{
 									return;
+								}
+								else
+								{
+								    // 如果没有销毁线程，就重新计算其空闲时间
+								    // 防止在队列中长时间等待的线程，在濒临死亡的一瞬间，被当作空闲线程使用  ZhengWei(HY) Add 2018-08-24
+								    this.idleBeginTime = 0;
 								}
 							}
 						}
@@ -726,7 +757,7 @@ public class ThreadBase
 					{
 						if ( this.myThreadBase.getTaskObject() != null )
 						{
-							v_IdleBeginTime = 0;
+						    this.idleBeginTime = 0;
 							this.myThreadBase.setThreadRunStatus(ThreadRunStatus.$Working);
 							this.myThreadBase.oldTaskType = new String(this.myThreadBase.getTaskObject().getTaskType());
 							
@@ -752,6 +783,18 @@ public class ThreadBase
 			}
 			
 		}
+
+        
+        public long getIdleBeginTime()
+        {
+            return idleBeginTime;
+        }
+        
+        
+        public void setIdleBeginTime(long idleBeginTime)
+        {
+            this.idleBeginTime = idleBeginTime;
+        }
 		
 	}
 	

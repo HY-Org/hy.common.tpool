@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Vector;
 
 import org.hy.common.Queue;
+import org.hy.common.Return;
 import org.hy.common.StringHelp;
 import org.hy.common.thread.ui.ThreadPoolWatch;
 
@@ -19,6 +20,8 @@ import org.hy.common.thread.ui.ThreadPoolWatch;
  *
  * @author   ZhengWei(HY)
  * @version  V1.0  2011-06-08
+ *           V1.1  2018-08-23  修复：防止在队列中长时间等待的线程，在濒临死亡的一瞬间，被当作空闲线程使用
+ *           V1.2  2018-08-24  添加：将杀死线程与获取空闲线程两的方法，合并为一个统一的方法，确保同步锁的功效。
  */
 public class ThreadPool 
 {
@@ -193,52 +196,76 @@ public class ThreadPool
 	
 	
 	/**
+     * 获取空闲的线程任务 或 杀死线程(有限制的)
+     * 
+     * 集两个方法为身，就是为了保证同步锁的功效
+     * 
+     * @author      ZhengWei(HY)
+     * @createDate  2018-08-24
+     * @version     v1.0
+     * 
+     * @param i_ThreadBase    要被杀死的线程
+     * @param i_TaskObject    任务对象
+     * @param i_IntervalTime  等待时间间隔(单位：毫秒) 默认为：100毫秒
+     * @param i_IdleTimeKill  空闲多少时间后线程自毁(单位：秒) 默认为：60秒
+     * @return                1. Return.paramInt 表示杀死线程是否成功
+     *                        2. Return.paramObj 表示空闲的线程对象
+     */
+    private synchronized static Return<ThreadBase> getIdleThread_Or_KillMySelf(ThreadBase i_ThreadBase ,Task<?> i_TaskObject ,long i_IntervalTime ,long i_IdleTimeKill)
+    {
+        Return<ThreadBase> v_Ret = new Return<ThreadBase>(true);
+        
+        if ( i_ThreadBase != null )
+        {
+            return v_Ret.setParamInt(killMySelf_NoSync(i_ThreadBase));
+        }
+        else
+        {
+            return v_Ret.setParamObj(getIdleThread_NoSync(i_TaskObject ,i_IntervalTime ,i_IdleTimeKill));
+        }
+    }
+	
+	
+	/**
 	 * 杀死线程(有限制的)
+	 * 
+	 * 内部方法有同步锁，所以此方法不再添加
 	 * 
 	 * @param i_ThreadBase
 	 * @return  返回 0 表示成功
 	 */
-	public synchronized static int killMySelf(ThreadBase i_ThreadBase) 
+	public static int killMySelf(ThreadBase i_ThreadBase) 
 	{
-		if ( ThreadPool.getIdleThreadCount() > ThreadPool.getMinIdleThread()
-		  && ThreadPool.getThreadCount()     > ThreadPool.getMinThread() )
-		{
-			try
-			{			
-				killThread(i_ThreadBase);
-				
-				return 0;
-			}
-			catch (Exception exce)
-			{
-				exce.printStackTrace();
-				return -1;
-			}
-		}
-		else
-		{
-			return -1;
-		}
+	    return getIdleThread_Or_KillMySelf(i_ThreadBase ,null ,0 ,0).paramInt;
 	}
 	
 	
 	/**
-	 * 是否有条件(允许)线程自毁
-	 * 
-	 * @return
-	 */
-	public synchronized static boolean isAllowKillMySelf()
-	{
-		if ( ThreadPool.getIdleThreadCount() > ThreadPool.getMinIdleThread()
-		  && ThreadPool.getThreadCount()     > ThreadPool.getMinThread() )
-		{
-			return true;
-		}
-		else
-		{
-			return false;
-		}
-	}
+     * 杀死线程(有限制的)
+     * 
+     * @param i_ThreadBase
+     * @return  返回 0 表示成功
+     */
+    private static int killMySelf_NoSync(ThreadBase i_ThreadBase) 
+    {
+        if ( ThreadPool.getIdleThreadCount() > ThreadPool.getMinIdleThread()
+          && ThreadPool.getThreadCount()     > ThreadPool.getMinThread() )
+        {
+            try
+            {           
+                return killThread_NoSync(i_ThreadBase) ? 0 : -1;
+            }
+            catch (Exception exce)
+            {
+                exce.printStackTrace();
+                return -1;
+            }
+        }
+        else
+        {
+            return -1;
+        }
+    }
 	
 	
 	/**
@@ -247,69 +274,89 @@ public class ThreadPool
 	 * @param i_ThreadBase
 	 * @return  返回 0 表示成功
 	 */
-	public synchronized static void killThread(ThreadBase i_ThreadBase) 
+	public synchronized static boolean killThread(ThreadBase i_ThreadBase) 
 	{
-		ThreadPoolSize--;
-		
-		THREADPOOL.remove(i_ThreadBase);
-		
-		IdleThreadPool.remove(i_ThreadBase);
-		
-		
-		if ( IsWatch )
-		{
-			ThreadPoolWatch.getInstance().updateTitle(showInfo());
-		}
+	    return killThread_NoSync(i_ThreadBase);
 	}
 	
 	
 	/**
-	 * 对象是否存在在线程池中
-	 * 
-	 * @param i_ThreadBase
-	 * @return
-	 */
-	public synchronized static boolean isExists(ThreadBase i_ThreadBase)
-	{
-		if ( i_ThreadBase == null )
-		{
-			return false;
-		}
-		return THREADPOOL.contains(i_ThreadBase);
-	}
+     * 杀死线程(无限制的)
+     * 
+     * @param i_ThreadBase
+     * @return  返回 0 表示成功
+     */
+    private static boolean killThread_NoSync(ThreadBase i_ThreadBase) 
+    {
+        boolean v_Ret = false;
+        
+        v_Ret = IdleThreadPool.remove(i_ThreadBase);
+        if ( v_Ret )
+        {
+            ThreadPoolSize--;
+            THREADPOOL.remove(i_ThreadBase);
+        }
+        
+        if ( IsWatch )
+        {
+            ThreadPoolWatch.getInstance().updateTitle(showInfo());
+        }
+        
+        return v_Ret;
+    }
 	
 	
 	/**
 	 * 获取空闲的线程任务
+	 * 
+	 * 内部方法有同步锁，所以此方法不再添加
 	 * 
 	 * @param i_TaskObject    任务对象
 	 * @param i_IntervalTime  等待时间间隔(单位：毫秒) 默认为：100毫秒
 	 * @param i_IdleTimeKill  空闲多少时间后线程自毁(单位：秒) 默认为：60秒
 	 * @return
 	 */
-	protected synchronized static ThreadBase getIdleThread(Task<?> i_TaskObject ,long i_IntervalTime ,long i_IdleTimeKill)
+	protected static ThreadBase getIdleThread(Task<?> i_TaskObject ,long i_IntervalTime ,long i_IdleTimeKill)
 	{
-		// 其实在 IdleThreadPool.get() 内部也有 size() == 0 的判断
-		// 但那是 synchronized 的，在此添加判断，可以提高性能与速度
-		if ( IdleThreadPool.size() == 0 )
-		{
-			return null;
-		}
-		
-		
-		ThreadBase v_ThreadBase = IdleThreadPool.get();
-		
-		if ( v_ThreadBase != null )
-		{
-			v_ThreadBase.setTaskObject(i_TaskObject);
-			v_ThreadBase.setIntervalTime(i_IntervalTime);
-			v_ThreadBase.setIdleTimeKill(i_IdleTimeKill);
-			
-			return v_ThreadBase;
-		}
-		
-		return null;
+	    return getIdleThread_Or_KillMySelf(null ,i_TaskObject ,i_IntervalTime ,i_IdleTimeKill).paramObj;
 	}
+	
+	
+	/**
+     * 获取空闲的线程任务
+     * 
+     * @param i_TaskObject    任务对象
+     * @param i_IntervalTime  等待时间间隔(单位：毫秒) 默认为：100毫秒
+     * @param i_IdleTimeKill  空闲多少时间后线程自毁(单位：秒) 默认为：60秒
+     * @return
+     */
+    private static ThreadBase getIdleThread_NoSync(Task<?> i_TaskObject ,long i_IntervalTime ,long i_IdleTimeKill)
+    {
+        // 其实在 IdleThreadPool.get() 内部也有 size() == 0 的判断
+        // 但那是 synchronized 的，在此添加判断，可以提高性能与速度
+        if ( IdleThreadPool.size() == 0 )
+        {
+            return null;
+        }
+        
+        ThreadBase v_ThreadBase = IdleThreadPool.get();
+        
+        if ( v_ThreadBase != null )
+        {
+            v_ThreadBase.coreIdleTimeRecalculation();
+            v_ThreadBase.setIdleTimeKill(i_IdleTimeKill);
+            v_ThreadBase.setIntervalTime(i_IntervalTime);
+            v_ThreadBase.setTaskObject(  i_TaskObject);
+            
+            // 防止在队列中长时间等待的线程，在濒临死亡的一瞬间，被当作空闲线程使用  ZhengWei(HY) Add 2018-08-23
+            if ( v_ThreadBase.isRun() )
+            {
+                return v_ThreadBase;
+            }
+        }
+        
+        return null;
+    }
 	
 	
 	/**
@@ -336,6 +383,41 @@ public class ThreadPool
 		}
 	}
 	
+	
+	/**
+     * 是否有条件(允许)线程自毁
+     * 
+     * @return
+     */
+    public synchronized static boolean isAllowKillMySelf()
+    {
+        if ( ThreadPool.getIdleThreadCount() > ThreadPool.getMinIdleThread()
+          && ThreadPool.getThreadCount()     > ThreadPool.getMinThread() )
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+	
+	
+	/**
+     * 对象是否存在在线程池中
+     * 
+     * @param i_ThreadBase
+     * @return
+     */
+    public synchronized static boolean isExists(ThreadBase i_ThreadBase)
+    {
+        if ( i_ThreadBase == null )
+        {
+            return false;
+        }
+        return THREADPOOL.contains(i_ThreadBase);
+    }
+    
 	
 	/**
 	 * 停止所有线程
