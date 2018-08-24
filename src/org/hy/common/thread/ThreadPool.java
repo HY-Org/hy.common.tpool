@@ -290,6 +290,7 @@ public class ThreadPool
     {
         boolean v_Ret = false;
         
+        // 如果没有成功删除，可能表示线程已被当作"空闲线程"拿去使用了。 ZhengWei(HY) Add 2018-08-24
         v_Ret = IdleThreadPool.remove(i_ThreadBase);
         if ( v_Ret )
         {
