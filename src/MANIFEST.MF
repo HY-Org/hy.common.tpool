@@ -1,5 +1,5 @@
-Manifest-Version: 1.1.8
+Manifest-Version: 1.1.9
 Created-By: HY.ZhengWei@qq.com  2011
-Specification-Version: 1.1.8  2018-08-24
+Specification-Version: 1.1.9  2018-09-27
 SourceCode: https://github.com/HY-ZhengWei/hy.common.tpool
 Build-JDK: 1.6
