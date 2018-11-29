@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<config>
+
+	<import name="xconfig"         class="java.util.ArrayList" />
+	<import name="job"             class="org.hy.common.thread.Job" />
+	<import name="jobs"            class="org.hy.common.thread.Jobs" />
+	
+	
+	
+	<!-- 任务配置信息 -->
+	<xconfig>
+	
+	    <job id="JOB_Test_StartTimes">
+	    	<code>JOB_Test_StartTimes</code>
+	    	<name>测试开始时间组 及 执行条件</name>
+	    	<intervalType ref="this.$IntervalType_Hour"/>
+	    	<intervalLen>1</intervalLen>
+	    	<startTime>
+	    		 2015-01-01 17:01:00
+	    		,2015-01-01 17:02:00
+	    		,2015-01-01 17:03:00
+	    		,2015-01-01 17:04:00
+	    	</startTime>
+	    	<condition><![CDATA[:MI != 2]]></condition>    <!-- 不等于2分时才允许执行任务 -->
+	    	<xid>LjgszbService</xid>
+	    	<methodName>jobTest</methodName>
+	    </job>
+	    
+	    
+	    
+	    <jobs id="JOBS" this="JOBS">
+	    	<call name="shutdown" />  <!-- 停止所有定时任务。预防多次重复加载时的异常 -->
+	    	<call name="delJobs" />   <!-- 删除所有定时任务。预防多次重复加载时的异常 -->
+	    
+	    	<addJob ref="JOB_Test_StartTimes"              />
+	    	
+	    	<call name="startup" />
+	    </jobs>
+		
+	</xconfig>
+	
+</config>
