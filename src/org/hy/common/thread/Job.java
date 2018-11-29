@@ -66,25 +66,25 @@ public class Job extends Task<Object> implements Comparable<Job>
     
     
     /** 是否允许执行的条件中的表达式中，预定义占位符有：年份 */
-    public  static final String    $Condition_Y         = ":Y";
+    public  static final String    $Condition_Y         = "Y";
     
     /** 是否允许执行的条件中的表达式中，预定义占位符有：月份 */
-    public  static final String    $Condition_M         = ":M";
+    public  static final String    $Condition_M         = "M";
 
     /** 是否允许执行的条件中的表达式中，预定义占位符有：天 */
-    public  static final String    $Condition_D         = ":D";
+    public  static final String    $Condition_D         = "D";
     
     /** 是否允许执行的条件中的表达式中，预定义占位符有：小时(24小时制) */
-    public  static final String    $Condition_H         = ":H";
+    public  static final String    $Condition_H         = "H";
     
     /** 是否允许执行的条件中的表达式中，预定义占位符有：分钟 */
-    public  static final String    $Condition_MI        = ":MI";
+    public  static final String    $Condition_MI        = "MI";
     
     /** 是否允许执行的条件中的表达式中，预定义占位符有：秒 */
-    public  static final String    $Condition_S         = ":S";
+    public  static final String    $Condition_S         = "S";
     
     /** 是否允许执行的条件中的表达式中，预定义占位符有：年月日，格式为YYYYMMDD 样式的整数类型。整数类型是为了方便比较 */
-    public  static final String    $Condition_YMD       = ":YMD";
+    public  static final String    $Condition_YMD       = "YMD";
     
     /** 表达式引擎 */
     private static final FelEngine $FelEngine           = new FelEngineImpl();
@@ -740,6 +740,25 @@ public class Job extends Task<Object> implements Comparable<Job>
     public void setCondition(String i_Condition)
     {
         this.condition = Help.NVL(i_Condition).toUpperCase();
+        this.condition = StringHelp.replaceAll(this.condition 
+                                              ,new String[]{
+                                                            ":" + $Condition_YMD
+                                                           ,":" + $Condition_S
+                                                           ,":" + $Condition_MI
+                                                           ,":" + $Condition_H
+                                                           ,":" + $Condition_D
+                                                           ,":" + $Condition_D
+                                                           ,":" + $Condition_Y
+                                                           } 
+                                              ,new String[]{
+                                                            $Condition_YMD
+                                                           ,$Condition_S
+                                                           ,$Condition_MI
+                                                           ,$Condition_H
+                                                           ,$Condition_D
+                                                           ,$Condition_M
+                                                           ,$Condition_Y
+                                                            });
     }
     
     
@@ -777,7 +796,7 @@ public class Job extends Task<Object> implements Comparable<Job>
         }
         catch (Exception exce)
         {
-            throw new RuntimeException("Fel[" + this.condition + "] Placeholder[" + this.condition + "] is error." + exce.getMessage());
+            throw new RuntimeException("Fel[" + this.condition + "] is error." + exce.getMessage());
         }
     }
 
