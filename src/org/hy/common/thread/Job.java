@@ -2,6 +2,11 @@ package org.hy.common.thread;
 
 import org.hy.common.xml.XJava;
 
+import com.greenpineyu.fel.FelEngine;
+import com.greenpineyu.fel.FelEngineImpl;
+import com.greenpineyu.fel.context.FelContext;
+import com.greenpineyu.fel.context.MapContext;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,35 +34,63 @@ import org.hy.common.StringHelp;
  *              v5.1  2018-04-11  添加：执行次数的统计属性
  *              v5.2  2018-05-22  添加：执行历史日志
  *              v5.3  2018-08-21  修改：将xjavaID改为xid与XSQLNode统一，同时防止与接口 org.hy.common.XJavaID 中的方法冲突。
- *              v6.0  2018-11-29  添加：开始时间组，即开始时间可以有多个。
- *                                     可实现一项任务在多个时间点上周期执行，并且只须配置一个Job，而非多个Job。
- *                                     注：此功能对 "间隔类型:秒、分" 是无效的（只取最小时间为开始时间）
- *                                     建议人：邹德福、张德宏
+ *              v6.0  2018-11-29  添加1：开始时间组，即开始时间可以有多个。
+ *                                      可实现一项任务在多个时间点上周期执行，并且只须配置一个Job，而非多个Job。
+ *                                      注：此功能对 "间隔类型:秒、分" 是无效的（只取最小时间为开始时间）
+ *                                添加2：在条件判定为True时，才允许执行任务。并预定义了占位符的标准。
+ *                                      可实现如下场景：某任务每天8~18点间周期执行。
+ *                                建议人：邹德福、张德宏
  */
 public class Job extends Task<Object> implements Comparable<Job>
 {
     /** 间隔类型: 秒 */
-    public  static final int  $IntervalType_Second = -2;
+    public  static final int       $IntervalType_Second = -2;
     
     /** 间隔类型: 分钟 */
-    public  static final int  $IntervalType_Minute = 60;
+    public  static final int       $IntervalType_Minute = 60;
     
     /** 间隔类型: 小时 */
-    public  static final int  $IntervalType_Hour   = 60 * $IntervalType_Minute;
+    public  static final int       $IntervalType_Hour   = 60 * $IntervalType_Minute;
     
     /** 间隔类型: 天 */
-    public  static final int  $IntervalType_Day    = 24 * $IntervalType_Hour;
+    public  static final int       $IntervalType_Day    = 24 * $IntervalType_Hour;
     
     /** 间隔类型: 周 */
-    public  static final int  $IntervalType_Week   = 7  * $IntervalType_Day;
+    public  static final int       $IntervalType_Week   = 7  * $IntervalType_Day;
     
     /** 间隔类型: 月 */
-    public  static final int  $IntervalType_Month  = 1;
+    public  static final int       $IntervalType_Month  = 1;
     
     /** 间隔类型: 手工执行 */
-    public  static final int  $IntervalType_Manual = -1;
+    public  static final int       $IntervalType_Manual = -1;
     
-    private static       long $SerialNo            = 0;
+    
+    /** 是否允许执行的条件中的表达式中，预定义占位符有：年份 */
+    public  static final String    $Condition_Y         = ":Y";
+    
+    /** 是否允许执行的条件中的表达式中，预定义占位符有：月份 */
+    public  static final String    $Condition_M         = ":M";
+
+    /** 是否允许执行的条件中的表达式中，预定义占位符有：天 */
+    public  static final String    $Condition_D         = ":D";
+    
+    /** 是否允许执行的条件中的表达式中，预定义占位符有：小时(24小时制) */
+    public  static final String    $Condition_H         = ":H";
+    
+    /** 是否允许执行的条件中的表达式中，预定义占位符有：分钟 */
+    public  static final String    $Condition_MI        = ":MI";
+    
+    /** 是否允许执行的条件中的表达式中，预定义占位符有：秒 */
+    public  static final String    $Condition_S         = ":S";
+    
+    /** 是否允许执行的条件中的表达式中，预定义占位符有：年月日，格式为YYYYMMDD 样式的整数类型。整数类型是为了方便比较 */
+    public  static final String    $Condition_YMD       = ":YMD";
+    
+    /** 表达式引擎 */
+    private static final FelEngine $FelEngine           = new FelEngineImpl();
+    
+    
+    private static       long      $SerialNo            = 0;
     
     
     
@@ -91,6 +124,20 @@ public class Job extends Task<Object> implements Comparable<Job>
     
     /** 最后一次的执行时间 */
     private Date           lastTime;
+    
+    /** 
+     * 允许执行的条件。
+     * 
+     *  表达式中，预定义占位符有（占位符不区分大小写）：
+     *    :Y    表示年份
+     *    :M    表示月份
+     *    :D    表示天
+     *    :H    表示小时(24小时制)
+     *    :MI   表示分钟
+     *    :S    表示秒
+     *    :YMD  表示年月日，格式为YYYYMMDD 样式的整数类型。整数类型是为了方便比较
+     */
+    private String         condition;
     
     /** XJava对象标识 */
     private String         xid;
@@ -211,6 +258,16 @@ public class Job extends Task<Object> implements Comparable<Job>
     
     
     
+    /**
+     * 获取：下次时间组。
+     */
+    public List<Date> getNextTimes()
+    {
+        return nextTimes;
+    }
+
+
+
     /**
      * 获取下一次运行时间
      * 
@@ -644,7 +701,86 @@ public class Job extends Task<Object> implements Comparable<Job>
     {
         this.runLogs = runLogs;
     }
+
+
     
+    /**
+     * 获取：允许执行的条件。
+     * 
+     *  表达式中，预定义占位符有（占位符不区分大小写）：
+     *    :Y    表示年份
+     *    :M    表示月份
+     *    :D    表示天
+     *    :H    表示小时(24小时制)
+     *    :MI   表示分钟
+     *    :S    表示秒
+     *    :YMD  表示年月日，格式为YYYYMMDD 样式的整数类型。整数类型是为了方便比较
+     */
+    public String getCondition()
+    {
+        return condition;
+    }
+
+
+    
+    /**
+     * 设置：允许执行的条件。
+     * 
+     *  表达式中，预定义占位符有（占位符不区分大小写）：
+     *    :Y    表示年份
+     *    :M    表示月份
+     *    :D    表示天
+     *    :H    表示小时(24小时制)
+     *    :MI   表示分钟
+     *    :S    表示秒
+     *    :YMD  表示年月日，格式为YYYYMMDD 样式的整数类型。整数类型是为了方便比较
+     * 
+     * @param i_Condition 
+     */
+    public void setCondition(String i_Condition)
+    {
+        this.condition = Help.NVL(i_Condition).toUpperCase();
+    }
+    
+    
+    
+    /**
+     * 是否允许执行
+     * 
+     * @author      ZhengWei(HY)
+     * @createDate  2018-11-29
+     * @version     v1.0
+     *
+     * @param i_Now  当前时间
+     * @return
+     */
+    public boolean isAllow(final Date i_Now)
+    {
+        if ( Help.isNull(this.condition) )
+        {
+            return true;
+        }
+        
+        try
+        {
+            FelContext v_FelContext = new MapContext();
+            
+            v_FelContext.set($Condition_Y   ,i_Now.getYear());
+            v_FelContext.set($Condition_M   ,i_Now.getMonth());
+            v_FelContext.set($Condition_D   ,i_Now.getDay());
+            v_FelContext.set($Condition_H   ,i_Now.getHours());
+            v_FelContext.set($Condition_MI  ,i_Now.getMinutes());
+            v_FelContext.set($Condition_S   ,i_Now.getSeconds());
+            v_FelContext.set($Condition_YMD ,Integer.parseInt(i_Now.getYMD_ID()));
+            
+            return (Boolean) $FelEngine.eval(this.condition ,v_FelContext);
+        }
+        catch (Exception exce)
+        {
+            throw new RuntimeException("Fel[" + this.condition + "] Placeholder[" + this.condition + "] is error." + exce.getMessage());
+        }
+    }
+
 
 
     public int compareTo(Job i_Other)

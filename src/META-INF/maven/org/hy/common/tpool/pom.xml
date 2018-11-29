@@ -37,5 +37,11 @@
 	    <artifactId>hy.common.base</artifactId>
 	    <version>1.0.140</version>
 	</dependency>
+	
+	<dependency>
+	    <groupId>org.eweb4j</groupId>
+	    <artifactId>fel</artifactId>
+	    <version>0.8</version>
+	</dependency>
   </dependencies>
 </project>

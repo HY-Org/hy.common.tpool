@@ -23,6 +23,8 @@ import org.hy.common.Help;
  *              v4.0  2016-07-08：添加：支持轮询间隔：秒
  *              v5.0  2018-05-22：添加：预防因主机系统时间不精确，时间同步机制异常（如来回调整时间、时间跳跃、时间波动等），
  *                                     造成定时任务重复执行的可能。
+ *              v6.0  2018-11-29  添加：在条件判定为True时，才允许执行任务。并预定义了占位符的标准。
+ *                                     可实现如下场景：某任务每天8~18点间周期执行。
  */
 public final class Jobs extends Job
 {
@@ -206,7 +208,10 @@ public final class Jobs extends Job
                     
                     if ( v_NextTime.equalsYMDHMS(v_Now) )
                     {
-                        this.executeJob(v_Job);
+                        if ( v_Job.isAllow(v_Now) )
+                        {
+                            this.executeJob(v_Job);
+                        }
                     }
                 }
                 catch (Exception exce)
@@ -230,13 +235,19 @@ public final class Jobs extends Job
                     {
                         if ( v_Job.getLastTime() == null )
                         {
-                            this.executeJob(v_Job);
+                            if ( v_Job.isAllow(v_Now) )
+                            {
+                                this.executeJob(v_Job);
+                            }
                         }
                         // 预防因主机系统时间不精确，时间同步机制异常（如来回调整时间、时间跳跃、时间波动等），
                         // 造成定时任务重复执行的可能。  ZhengWei(HY) Add 2018-05-22
                         else if ( !v_Job.getLastTime().equalsYMDHM(v_Now) && v_Job.getLastTime().differ(v_Now) < 0 )
                         {
-                            this.executeJob(v_Job);
+                            if ( v_Job.isAllow(v_Now) )
+                            {
+                                this.executeJob(v_Job);
+                            }
                         }
                     }
                 }
