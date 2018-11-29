@@ -192,7 +192,7 @@ public final class Jobs extends Job
         }
         
         
-        final Date    v_Now  = new Date();
+        Date          v_Now  = new Date();
         Iterator<Job> v_Iter = this.jobList.iterator();
         
         if ( this.minIntervalType == Job.$IntervalType_Second )
@@ -217,6 +217,8 @@ public final class Jobs extends Job
         }
         else
         {
+            v_Now = v_Now.getFirstTimeOfMinute();
+            
             while ( v_Iter.hasNext() )
             {
                 try

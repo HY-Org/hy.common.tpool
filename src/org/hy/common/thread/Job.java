@@ -9,6 +9,7 @@ import org.hy.common.Busway;
 import org.hy.common.Date;
 import org.hy.common.Execute;
 import org.hy.common.Help;
+import org.hy.common.StringHelp;
 
 
 
@@ -30,6 +31,7 @@ import org.hy.common.Help;
  *              v5.3  2018-08-21  修改：将xjavaID改为xid与XSQLNode统一，同时防止与接口 org.hy.common.XJavaID 中的方法冲突。
  *              v6.0  2018-11-29  添加：开始时间组，即开始时间可以有多个。
  *                                     可实现一项任务在多个时间点上周期执行，并且只须配置一个Job，而非多个Job。
+ *                                     注：此功能对 "间隔类型:秒、分" 是无效的（只取最小时间为开始时间）
  *                                     建议人：邹德福、张德宏
  */
 public class Job extends Task<Object> implements Comparable<Job>
@@ -78,7 +80,7 @@ public class Job extends Task<Object> implements Comparable<Job>
     /** 间隔长度 */
     private int            intervalLen;
     
-    /** 开始时间组。多个开始时间用分号分隔。多个开始时间对 "间隔类型:秒" 是无效的（只取最小时间为开始时间） */
+    /** 开始时间组。多个开始时间用分号分隔。多个开始时间对 "间隔类型:秒、分" 是无效的（只取最小时间为开始时间） */
     private List<Date>     startTimes;
     
     /** 下次时间 */
@@ -306,15 +308,15 @@ public class Job extends Task<Object> implements Comparable<Job>
                         continue;
                     }
                     
-                    while ( i_Now.getTime() >= this.nextTime.getTime() )
+                    while ( i_Now.getTime() >= v_NextTime.getTime() )
                     {
-                        this.nextTime = this.nextTime.getNextMonth();
+                        v_NextTime.setDate(v_NextTime.getNextMonth());
                     }
                     
                     // 计算间隔
                     for (int i=1; i<this.intervalLen; i++)
                     {
-                        this.nextTime = this.nextTime.getNextMonth();
+                        v_NextTime.setDate(v_NextTime.getNextMonth());
                     }
                 }
             }
@@ -440,7 +442,7 @@ public class Job extends Task<Object> implements Comparable<Job>
 
 
     /**
-     * 获取：开始时间组。多个开始时间用分号分隔。多个开始时间对 "间隔类型:秒" 是无效的（只取最小时间为开始时间）
+     * 获取：开始时间组。多个开始时间用分号分隔。多个开始时间对 "间隔类型:秒、分" 是无效的（只取最小时间为开始时间）
      * 
      * @return
      */
@@ -451,7 +453,7 @@ public class Job extends Task<Object> implements Comparable<Job>
 
     
     /**
-     * 设置：开始时间组。多个开始时间用分号分隔。多个开始时间对 "间隔类型:秒" 是无效的（只取最小时间为开始时间）
+     * 设置：开始时间组。多个开始时间用分号分隔。多个开始时间对 "间隔类型:秒、分" 是无效的（只取最小时间为开始时间）
      * 
      * @param i_StartTimesStr
      */
@@ -463,10 +465,10 @@ public class Job extends Task<Object> implements Comparable<Job>
         }
         
         this.startTimes = new ArrayList<Date>();
-        String [] v_STimeArr = i_StartTimesStr.split(",");
+        String [] v_STimeArr = StringHelp.replaceAll(i_StartTimesStr ,new String[]{"\t" ,"\n" ,"\r"} ,new String[]{""}).split(",");
         for (String v_STime : v_STimeArr)
         {
-            this.startTimes.add(new Date(v_STime));
+            this.startTimes.add(new Date(v_STime.trim()));
         }
         
         Help.toSort(this.startTimes);
