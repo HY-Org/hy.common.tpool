@@ -1,6 +1,10 @@
 package org.hy.common.thread;
 
 import org.hy.common.xml.XJava;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import org.hy.common.Busway;
 import org.hy.common.Date;
 import org.hy.common.Execute;
@@ -24,6 +28,9 @@ import org.hy.common.Help;
  *              v5.1  2018-04-11  添加：执行次数的统计属性
  *              v5.2  2018-05-22  添加：执行历史日志
  *              v5.3  2018-08-21  修改：将xjavaID改为xid与XSQLNode统一，同时防止与接口 org.hy.common.XJavaID 中的方法冲突。
+ *              v6.0  2018-11-29  添加：开始时间组，即开始时间可以有多个。
+ *                                     可实现一项任务在多个时间点上周期执行，并且只须配置一个Job，而非多个Job。
+ *                                     建议人：邹德福、张德宏
  */
 public class Job extends Task<Object> implements Comparable<Job>
 {
@@ -71,11 +78,14 @@ public class Job extends Task<Object> implements Comparable<Job>
     /** 间隔长度 */
     private int            intervalLen;
     
-    /** 开始时间 */
-    private Date           startTime;
+    /** 开始时间组。多个开始时间用分号分隔。多个开始时间对 "间隔类型:秒" 是无效的（只取最小时间为开始时间） */
+    private List<Date>     startTimes;
     
     /** 下次时间 */
     private Date           nextTime;
+    
+    /** 下次时间组。 */
+    private List<Date>     nextTimes;
     
     /** 最后一次的执行时间 */
     private Date           lastTime;
@@ -116,7 +126,10 @@ public class Job extends Task<Object> implements Comparable<Job>
     {
         super("$JOB$");
         
-        this.startTime       = Date.getNowTime().getNextHour().getFirstTimeOfHour(); 
+        this.startTimes      = new ArrayList<Date>();
+        this.startTimes.add(Date.getNowTime().getNextHour().getFirstTimeOfHour());
+        this.nextTime        = null;
+        this.nextTimes       = null;
         this.intervalType    = $IntervalType_Manual;
         this.intervalLen     = 1; 
         this.taskCount       = 1;
@@ -217,12 +230,19 @@ public class Job extends Task<Object> implements Comparable<Job>
     {
         if ( this.intervalType == $IntervalType_Manual )
         {
-            return new Date("2100-12-31 23:59:59");
+            return new Date("9999-12-31 23:59:59");
         }
         
         if ( this.nextTime == null )
         {
-            this.nextTime = new Date(this.startTime);
+            // 重新创建时间对象，防止nextTime修改影响this.startTime
+            // startTimes已按从小到大排序过，此处取最小时间
+            this.nextTime  = new Date(this.startTimes.get(0));
+            this.nextTimes = new ArrayList<Date>();
+            for (Date v_STime : this.startTimes)
+            {
+                this.nextTimes.add(new Date(v_STime));
+            }
         }
         
         if ( this.intervalType == $IntervalType_Second )
@@ -243,79 +263,129 @@ public class Job extends Task<Object> implements Comparable<Job>
         }
         else if ( i_Now.getTime() > this.nextTime.getTime() )
         {
+            // 间隔类型: 分钟 小时 天 周
             if ( this.intervalType >= $IntervalType_Minute )
             {
-                long v_DiffSec = (i_Now.getTime() - this.nextTime.getTime()) / 1000;
-                long v_PerC    = this.intervalType;
-                long v_Value   = ((int)(v_DiffSec / v_PerC)) * v_PerC;
-                
-                if ( v_Value < v_PerC * this.intervalLen )
+                // 为了性能，所以在if分支语句中写for
+                for (Date v_NextTime : this.nextTimes)
                 {
-                    v_Value = v_PerC * this.intervalLen;
+                    if ( i_Now.getTime() <= v_NextTime.getTime() )
+                    {
+                        continue;
+                    }
+                    
+                    long v_DiffSec = (i_Now.getTime() - v_NextTime.getTime()) / 1000;
+                    long v_PerC    = this.intervalType;
+                    long v_Value   = ((int)(v_DiffSec / v_PerC)) * v_PerC;
+                    
+                    if ( v_Value < v_PerC * this.intervalLen )
+                    {
+                        v_Value = v_PerC * this.intervalLen;
+                    }
+                    else if ( v_Value == v_PerC * this.intervalLen )
+                    {
+                        // Nothing.
+                    }
+                    else if ( v_Value % (v_PerC * this.intervalLen) == 0 )
+                    {
+                        v_Value += v_PerC * this.intervalLen;
+                    }
+                    
+                    v_Value = ((int)(v_Value / (v_PerC * this.intervalLen))) * v_PerC * this.intervalLen * 1000;
+                    v_NextTime.setTime(v_NextTime.getTime() + v_Value);
                 }
-                else if ( v_Value == v_PerC * this.intervalLen )
-                {
-                    // Nothing.
-                }
-                else if ( v_Value % (v_PerC * this.intervalLen) == 0 )
-                {
-                    v_Value += v_PerC * this.intervalLen;
-                }
-                
-                v_Value = ((int)(v_Value / (v_PerC * this.intervalLen))) * v_PerC * this.intervalLen * 1000;
-                this.nextTime.setTime(this.nextTime.getTime() + v_Value);
             }
+            // 间隔类型: 月
             else
             {
-                while ( i_Now.getTime() >= this.nextTime.getTime() )
+                // 为了性能，所以在if分支语句中写for
+                for (Date v_NextTime : this.nextTimes)
                 {
-                    this.nextTime = this.nextTime.getNextMonth();
-                }
-                
-                // 计算间隔
-                for (int i=1; i<this.intervalLen; i++)
-                {
-                    this.nextTime = this.nextTime.getNextMonth();
+                    if ( i_Now.getTime() <= v_NextTime.getTime() )
+                    {
+                        continue;
+                    }
+                    
+                    while ( i_Now.getTime() >= this.nextTime.getTime() )
+                    {
+                        this.nextTime = this.nextTime.getNextMonth();
+                    }
+                    
+                    // 计算间隔
+                    for (int i=1; i<this.intervalLen; i++)
+                    {
+                        this.nextTime = this.nextTime.getNextMonth();
+                    }
                 }
             }
+            
+            Help.toSort(this.nextTimes);
+            this.nextTime = this.nextTimes.get(0);
         }
         
         return this.nextTime;
     }
     
     
-    
+    /**
+     * 获取：任务编号
+     */
     public String getCode()
     {
         return code;
     }
 
-
+    
+    /**
+     * 设置：任务编号
+     * 
+     * @param code 
+     */
     public void setCode(String code)
     {
         this.code = code;
     }
 
 
+
+    /**
+     * 获取：间隔类型
+     */
     public int getIntervalType()
     {
         return intervalType;
     }
-
     
+    
+    /**
+     * 设置：间隔类型
+     * 
+     * @param intervalType 
+     */
     public void setIntervalType(int intervalType)
     {
         this.nextTime     = null;
+        this.nextTimes    = null;
         this.intervalType = intervalType;
     }
     
     
+    /**
+     * 间隔长度
+     *
+     * @return
+     */
     public int getIntervalLen()
     {
         return intervalLen;
     }
 
 
+    /**
+     * 设置：间隔长度
+     * 
+     * @param i_IntervalLen
+     */
     public void setIntervalLen(int i_IntervalLen)
     {
         if ( i_IntervalLen >= 1 )
@@ -325,78 +395,144 @@ public class Job extends Task<Object> implements Comparable<Job>
     }
 
     
+    /**
+     * 获取：运行的线程数
+     * taskCount=1表示单例，否则时间点一到，无论上次执行的任务是否完成，都将运行一个新的任务。
+     * 此属性要与this.code配合使用，this.code做为惟一标记
+     */
     public int getTaskCount()
     {
         return taskCount;
     }
 
     
+    /**
+     * 设置：运行的线程数
+     * taskCount=1表示单例，否则时间点一到，无论上次执行的任务是否完成，都将运行一个新的任务。
+     * 此属性要与this.code配合使用，this.code做为惟一标记
+     * 
+     * @param taskCount 
+     */
     public void setTaskCount(int taskCount)
     {
         this.taskCount = taskCount;
     }
 
 
+    /**
+     * 获取：任务配置名称
+     */
     public String getName()
     {
         return name;
     }
 
     
+    /**
+     * 设置：任务配置名称
+     * 
+     * @param name 
+     */
     public void setName(String name)
     {
         this.name = name;
     }
-    
-    
-    public Date getStartTime()
+
+
+    /**
+     * 获取：开始时间组。多个开始时间用分号分隔。多个开始时间对 "间隔类型:秒" 是无效的（只取最小时间为开始时间）
+     * 
+     * @return
+     */
+    public List<Date> getStartTimes()
     {
-        return startTime;
+        return this.startTimes;
     }
 
     
-    public void setStartTime(String i_StartTimeStr)
+    /**
+     * 设置：开始时间组。多个开始时间用分号分隔。多个开始时间对 "间隔类型:秒" 是无效的（只取最小时间为开始时间）
+     * 
+     * @param i_StartTimesStr
+     */
+    public void setStartTime(String i_StartTimesStr)
     {
-        this.startTime = new Date(i_StartTimeStr);
+        if ( Help.isNull(i_StartTimesStr) )
+        {
+            return;
+        }
+        
+        this.startTimes = new ArrayList<Date>();
+        String [] v_STimeArr = i_StartTimesStr.split(",");
+        for (String v_STime : v_STimeArr)
+        {
+            this.startTimes.add(new Date(v_STime));
+        }
+        
+        Help.toSort(this.startTimes);
     }
 
-    
+
+    /**
+     * 获取：描述
+     */
     public String getDesc()
     {
         return Help.NVL(this.desc);
     }
 
     
+    /**
+     * 设置：描述
+     * 
+     * @param xid 
+     */
     public void setDesc(String i_Desc)
     {
         this.desc = i_Desc;
     }
     
     
+    /**
+     * 获取：XJava对象标识
+     */
     public String getXid()
     {
         return xid;
     }
 
-
-    public void setXid(String i_Xid)
+    
+    /**
+     * 设置：XJava对象标识
+     * 
+     * @param xid 
+     */
+    public void setXid(String xid)
     {
-        this.xid = i_Xid;
+        this.xid = xid;
     }
 
-    
+
+    /**
+     * 获取：执行的方法名
+     */
     public String getMethodName()
     {
         return methodName;
     }
 
     
+    /**
+     * 设置：执行的方法名
+     * 
+     * @param methodName 
+     */
     public void setMethodName(String methodName)
     {
         this.methodName = methodName;
     }
 
-    
+
     public void setMyJobs(Jobs jobs)
     {
         this.jobs = jobs;
