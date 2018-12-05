@@ -175,7 +175,6 @@ public final class Jobs extends Job
      */
     public void execute()
     {
-        // 保证00秒运行
         try
         {
             if ( this.minIntervalType == Job.$IntervalType_Second )
@@ -184,8 +183,17 @@ public final class Jobs extends Job
             }
             else
             {
+                // 保证00秒运行
                 Date v_Now = new Date();
                 Thread.sleep(1000 * (59 - v_Now.getSeconds()) + (1000 - v_Now.getMilliSecond()));
+                
+                v_Now = new Date();
+                if ( v_Now.getSeconds() >= 50 )
+                {
+                    // 时间同步机制异常（如时间停滞、时间回退、时间跳跃、时间波动等）时，重新sleep  Add 2018-12-05
+                    // 也防止sleep(1000)并不是真正的睡眼了1秒。
+                    Thread.sleep(1000 * (59 - v_Now.getSeconds()) + (1000 - v_Now.getMilliSecond()));
+                }
             }
         }
         catch (Exception exce)
