@@ -275,7 +275,22 @@ public class Job extends Task<Object> implements Comparable<Job>
      */
     public Date getNextTime()
     {
-        return this.getNextTime(Date.getNowTime());
+        if ( this.intervalType == $IntervalType_Second )
+        {
+            return this.getNextTime(Date.getNowTime());
+        }
+        else if ( this.lastTime == null || this.nextTime == null )
+        {
+            return this.getNextTime(Date.getNowTime());
+        }
+        else if ( this.lastTime.equalsYMDHM(this.nextTime) )
+        {
+            return this.getNextTime(Date.getNowTime().getMinutes(1));
+        }
+        else
+        {
+            return this.getNextTime(Date.getNowTime());
+        }
     }
     
     
