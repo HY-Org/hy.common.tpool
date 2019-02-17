@@ -15,13 +15,14 @@ import org.hy.common.Date;
 import org.hy.common.Execute;
 import org.hy.common.Help;
 import org.hy.common.StringHelp;
+import org.hy.common.net.ClientSocket;
 
 
 
 
 
 /**
- * 任务配置信息
+ * 任务配置信息（支持云服务任务的执行）
  * 
  * @author      ZhengWei(HY)
  * @createDate  2013-12-16
@@ -40,6 +41,9 @@ import org.hy.common.StringHelp;
  *                                添加2：在条件判定为True时，才允许执行任务。并预定义了占位符的标准。
  *                                      可实现如下场景：某任务每天8~18点间周期执行。
  *                                建议人：邹德福、张德宏
+ *              v7.0  2019-02-17  添加：执行云服务上的任务。
+ *                                     只须额外配置云服务的IP:端口即可。
+ *                                     当然，云服务要开启通讯的，见 https://github.com/HY-Org/hy.common.net
  */
 public class Job extends Task<Object> implements Comparable<Job>
 {
@@ -139,6 +143,12 @@ public class Job extends Task<Object> implements Comparable<Job>
      */
     private String         condition;
     
+    /** 云计算服务器的地址端口。格式为：IP:Port */
+    private String         cloudServer;
+    
+    /** 云计算服务器的对象 */
+    private ClientSocket   cloudSocket;
+    
     /** XJava对象标识 */
     private String         xid;
     
@@ -229,7 +239,17 @@ public class Job extends Task<Object> implements Comparable<Job>
             this.lastTime = new Date();
             this.runCount++;
             this.runLogs.put(this.lastTime.getFullMilli());
-            (new Execute(v_Object ,this.methodName.trim())).start();
+            
+            // 本机执行：默认的
+            if ( this.cloudSocket == null )
+            {
+                (new Execute(v_Object ,this.methodName.trim())).start();
+            }
+            // 云服务执行：当配置CloudServer时。
+            else
+            {
+                (new Execute(this.cloudSocket ,"sendCommand" ,new Object[]{this.xid ,this.methodName.trim()})).start();
+            }
         }
         catch (Exception exce)
         {
@@ -567,6 +587,38 @@ public class Job extends Task<Object> implements Comparable<Job>
     }
     
     
+    /**
+     * 获取：云计算服务器的地址端口。格式为：IP:Port
+     */
+    public String getCloudServer()
+    {
+        return cloudServer;
+    }
+
+    
+    /**
+     * 设置：云计算服务器的地址端口。格式为：IP:Port。
+     * 
+     * 默认端口是：1721
+     * 
+     * @param i_CloudServer 
+     */
+    public void setCloudServer(String i_CloudServer)
+    {
+        if ( Help.isNull(i_CloudServer) )
+        {
+            this.cloudSocket = null;
+            this.cloudServer = null;
+            return;
+        }
+        
+        this.cloudServer = StringHelp.replaceAll(i_CloudServer ,new String[]{"，" ," " ,"\t" ,"\r" ,"\n"} ,new String[]{"," ,""});
+        
+        String [] v_HostPort = (this.cloudServer.trim() + ":1721").split(":");
+        this.cloudSocket = new ClientSocket(v_HostPort[0] ,Integer.parseInt(v_HostPort[1]));
+    }
+
+
     /**
      * 获取：XJava对象标识
      */
