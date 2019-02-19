@@ -15,6 +15,7 @@ import org.hy.common.Date;
 import org.hy.common.Execute;
 import org.hy.common.Help;
 import org.hy.common.StringHelp;
+import org.hy.common.XJavaID;
 import org.hy.common.net.ClientSocket;
 
 
@@ -45,7 +46,7 @@ import org.hy.common.net.ClientSocket;
  *                                     只须额外配置云服务的IP:端口即可。
  *                                     当然，云服务要开启通讯的，见 https://github.com/HY-Org/hy.common.net
  */
-public class Job extends Task<Object> implements Comparable<Job>
+public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
 {
     /** 间隔类型: 秒 */
     public  static final int       $IntervalType_Second = -2;
@@ -97,6 +98,8 @@ public class Job extends Task<Object> implements Comparable<Job>
     private static       long      $SerialNo            = 0;
     
     
+    /** XJava池中对象的ID标识 */
+    private String         xjavaID;
     
     /** 任务编号 */
     private String         code;
@@ -197,6 +200,30 @@ public class Job extends Task<Object> implements Comparable<Job>
         this.lastTime        = null;
         this.runCount        = 0;
         this.runLogs         = new Busway<String>(32);
+    }
+    
+    
+    
+    /**
+     * 设置XJava池中对象的ID标识。此方法不用用户调用设置值，是自动的。
+     * 
+     * @param i_XJavaID
+     */
+    public void setXJavaID(String i_XJavaID)
+    {
+        this.xjavaID = i_XJavaID;
+    }
+    
+    
+    
+    /**
+     * 获取XJava池中对象的ID标识。
+     * 
+     * @return
+     */
+    public String getXJavaID()
+    {
+        return this.xjavaID;
     }
     
     
