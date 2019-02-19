@@ -283,9 +283,16 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
             exce.printStackTrace();
         }
         
-        // 注意：delMonitor()方法不要加同步锁。否则会出现线程阻塞
-        this.jobs.delMonitor(this);
-        this.finishTask();
+        if ( this.jobs != null )
+        {
+            // 注意：delMonitor()方法不要加同步锁。否则会出现线程阻塞
+            this.jobs.delMonitor(this);
+            this.finishTask();
+        }
+        else
+        {
+            // 当 this.jobs 为空时，表示本方法是手工执行，并不是定时任务自动执行的。
+        }
     }
     
     
