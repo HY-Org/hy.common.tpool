@@ -255,12 +255,6 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
             throw new NullPointerException("Job.getMethodName() is null."); 
         }
         
-        Object v_Object = XJava.getObject(this.xid.trim());
-        if ( v_Object == null )
-        {
-            throw new NullPointerException("Job.getXid() = " + this.xid + " XJava.getObject(...) is null.");
-        }
-        
         try
         {
             this.lastTime = new Date();
@@ -270,6 +264,12 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
             // 本机执行：默认的
             if ( this.cloudSocket == null )
             {
+                Object v_Object = XJava.getObject(this.xid.trim());
+                if ( v_Object == null )
+                {
+                    throw new NullPointerException("Job.getXid() = " + this.xid + " XJava.getObject(...) is null.");
+                }
+                
                 (new Execute(v_Object ,this.methodName.trim())).start();
             }
             // 云服务执行：当配置CloudServer时。
