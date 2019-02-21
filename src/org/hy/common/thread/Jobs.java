@@ -3,10 +3,15 @@ package org.hy.common.thread;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.hy.common.Counter;
 import org.hy.common.Date;
 import org.hy.common.Help;
+import org.hy.common.net.ClientSocket;
+import org.hy.common.net.ClientSocketCluster;
+import org.hy.common.net.data.CommunicationResponse;
+import org.hy.common.xml.plugins.analyse.Cluster;
 
 
 
@@ -25,9 +30,40 @@ import org.hy.common.Help;
  *                                     造成定时任务重复执行的可能。
  *              v6.0  2018-11-29  添加：在条件判定为True时，才允许执行任务。并预定义了占位符的标准。
  *                                     可实现如下场景：某任务每天8~18点间周期执行。
+ *              v7.0  2019-02-21  添加：定时任务的灾备机制。
+ *                                      1. 建立定时任务服务的集群，并区分出集群的Master/Slave主从服务。
+ *                                         只允许集群一台为Master主服务执行定时任务，其它Slave从服务作为备机并不执行定时任务。
+ *                                      
+ *                                      2. 所有Slave从服务将定时监控Master主服务是否存活。Master主服务不反向监控Slave从服务。
+ *                                      
+ *                                      3. 当Master主服务宕机后，从其它正常的Slave从服务中选出一台作为新的Master主服务。
+ *                                         接管执行权限，确保定时任务的执行。
+ *                                         
+ *                                      4. 同时，新的Master主服务为了性能，也不再监控Slave从服务，再删除定时任务Job。
  */
 public final class Jobs extends Job
 {
+ 
+    /** 定时任务服务的灾备机制的心跳任务的XJavaID */
+    private static final String  $JOB_DisasterRecoverys_Check = "JOB_DisasterRecoverys_Check";
+    
+    /** 启动时间。即 startup() 方法的执行时间 */
+    private Date                 startTime;
+    
+    /** 
+     * 定时任务的灾备机制：灾备服务器。
+     * 灾备服务包括自己在内的所有服务器 。
+     * 
+     * 哪台服务的 Jobs.startTime 时间最早，即作为Master主服务，其它均为Slave从服务。
+     * 只有Master主服务有权执行任务，其它Slave从服务作为灾备服务（仍然计算任务的计划时间，但不执行任务）。
+     * 
+     * 此属性为：可选项。集合元素个数大于等于2时，灾备机制才生效（其中包括本服务自己，所以只少是2台服务时才生效）。
+     */
+    private List<ClientSocket>   disasterRecoverys;
+    
+    /** 是否为Master主服务 */
+    private boolean              isMaster;
+    
     /**
      * 所有计划任务配置信息
      */
@@ -53,11 +89,109 @@ public final class Jobs extends Job
     }
     
     
+    
+    /**
+     * 创建灾备机制的心跳任务
+     * 
+     * @author      ZhengWei(HY)
+     * @createDate  2019-02-21
+     * @version     v1.0
+     *
+     * @return
+     */
+    private Job createDisasterRecoveryJob()
+    {
+        Job v_Job = new Job();
+        
+        v_Job.setXJavaID($JOB_DisasterRecoverys_Check);
+        v_Job.setCode(v_Job.getXJavaID());
+        v_Job.setName("定时任务服务的灾备机制的心跳任务");
+        v_Job.setIntervalType(Job.$IntervalType_Minute);
+        v_Job.setIntervalLen(1);
+        v_Job.setStartTime("2000-01-01 00:00:00");
+        v_Job.setXid(this.getXJavaID());
+        v_Job.setMethodName("");
+        
+        return v_Job;
+    }
+    
+    
+    
+    /**
+     * 灾备机制的心跳及设定Master/Slave主从服务
+     * 
+     * @author      ZhengWei(HY)
+     * @createDate  2019-02-21
+     * @version     v1.0
+     *
+     */
+    public void disasterRecoveryChecks()
+    {
+        Map<ClientSocket ,CommunicationResponse> v_ResponseDatas   = ClientSocketCluster.sendCommands(this.disasterRecoverys ,Cluster.getClusterTimeout() ,this.getXJavaID() ,"getStartTime" ,true ,"定时任务服务的灾备心跳");
+        Date                                     v_MasterStartTime = null;
+        ClientSocket                             v_Master          = null;
+        List<ClientSocket>                       v_Slaves          = new ArrayList<ClientSocket>();
+        
+        for (Map.Entry<ClientSocket ,CommunicationResponse> v_Item : v_ResponseDatas.entrySet())
+        {
+            CommunicationResponse v_ResponseData = v_Item.getValue();
+            
+            if ( v_ResponseData.getResult() == 0 )
+            {
+                if ( v_ResponseData.getData() != null && v_ResponseData.getData() instanceof Date )
+                {
+                    Date v_StartTime = (Date)v_ResponseData.getData();
+                    
+                    if ( v_MasterStartTime == null )
+                    {
+                        v_MasterStartTime = v_StartTime;
+                        v_Master          = v_Item.getKey();
+                    }
+                    else if ( v_MasterStartTime.differ(v_StartTime) < 0 )
+                    {
+                        v_Slaves.add(v_Master);
+                        v_MasterStartTime = v_StartTime;
+                        v_Master          = v_Item.getKey();
+                    }
+                    else
+                    {
+                        v_Slaves.add(v_Item.getKey());
+                    }
+                }
+            }
+        }
+        
+        
+        ClientSocketCluster.sendCommands(v_Slaves ,Cluster.getClusterTimeout() ,this.getXJavaID() ,"setMaster" ,new Object[]{false} ,true ,"定时任务服务的灾备机制的Slave");
+        v_Master.sendCommand(this.getXJavaID() ,"setMaster" ,new Object[]{true});
+        
+        StringBuilder v_Buffer = new StringBuilder();
+        v_Buffer.append(Date.getNowTime().getFullMilli());
+        v_Buffer.append("定时任务服务的灾备机制的Master：");
+        v_Buffer.append(v_Master.getHostName());
+        v_Buffer.append(":");
+        v_Buffer.append(v_Master.getPort() );
+        System.out.println(v_Buffer.toString());
+    }
+    
+    
+    
     /**
      * 运行
      */
     public synchronized void startup()
     {
+        if ( this.isDisasterRecovery() )
+        {
+            disasterRecoveryChecks();
+            
+            if ( !this.isMaster )
+            {
+                // Master主服务不监控Slave从服务，只有Slave从服务监控主服务的存活性。
+                this.jobList.add(this.createDisasterRecoveryJob());
+            }
+        }
+        
         Help.toSort(this.jobList ,"intervalType");
         
         // 遍历初始一次所有Job的下一次执行时间，防止首次执行时等待2倍的间隔时长
@@ -73,6 +207,7 @@ public final class Jobs extends Job
         }
         
         TaskPool.putTask(this);
+        this.startTime = new Date();
     }
     
     
@@ -82,6 +217,7 @@ public final class Jobs extends Job
      */
     public synchronized void shutdown()
     {
+        this.startTime = null;
         this.finishTask();
     }
     
@@ -352,6 +488,111 @@ public final class Jobs extends Job
         }
         
         return true;
+    }
+    
+    
+    
+    /**
+     * 获取：启动时间。即 startup() 方法的执行时间
+     */
+    public Date getStartTime()
+    {
+        return startTime;
+    }
+    
+    
+    
+    /**
+     * 是否启动的灾备机制
+     * 
+     * @author      ZhengWei(HY)
+     * @createDate  2019-02-21
+     * @version     v1.0
+     *
+     * @return
+     */
+    public boolean isDisasterRecovery()
+    {
+        if ( Help.isNull(this.disasterRecoverys) )
+        {
+            return false;
+        }
+        else if ( this.disasterRecoverys.size() >= 2 )
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+    
+    
+    
+    /**
+     * 获取：定时任务的灾备机制：灾备服务器。
+     * 灾备服务包括自己在内的所有服务器 。
+     * 
+     * 哪台服务的 Jobs.startTime 时间最早，即作为Master主服务，其它均为Slave从服务。
+     * 只有Master主服务有权执行任务，其它Slave从服务作为灾备服务（仍然计算任务的计划时间，但不执行任务）。
+     * 
+     * 此属性为：可选项。集合元素个数大于等于2时，灾备机制才生效（其中包括本服务自己，所以只少是2台服务时才生效）。
+     */
+    public List<ClientSocket> getDisasterRecoverys()
+    {
+        return disasterRecoverys;
+    }
+    
+
+    
+    /**
+     * 设置：定时任务的灾备机制：灾备服务器。
+     * 灾备服务包括自己在内的所有服务器 。
+     * 
+     * 哪台服务的 Jobs.startTime 时间最早，即作为Master主服务，其它均为Slave从服务。
+     * 只有Master主服务有权执行任务，其它Slave从服务作为灾备服务（仍然计算任务的计划时间，但不执行任务）。
+     * 
+     * 此属性为：可选项。集合元素个数大于等于2时，灾备机制才生效（其中包括本服务自己，所以只少是2台服务时才生效）。
+     * 
+     * @param disasterRecoverys 
+     */
+    public void setDisasterRecoverys(List<ClientSocket> disasterRecoverys)
+    {
+        this.disasterRecoverys = disasterRecoverys;
+    }
+    
+
+
+    /**
+     * 获取：是否为Master主服务
+     */
+    public boolean isMaster()
+    {
+        return isMaster;
+    }
+    
+    
+    
+    /**
+     * 设置：是否为Master主服务
+     * 
+     * @param isMaster 
+     */
+    public void setMaster(boolean isMaster)
+    {
+        this.isMaster = isMaster;
+        
+        if ( this.isMaster )
+        {
+            for (int v_Index=this.jobList.size() - 1; v_Index>=0; v_Index--)
+            {
+                if ( $JOB_DisasterRecoverys_Check.equals(this.jobList.get(v_Index).getXJavaID()) )
+                {
+                    this.jobList.remove(v_Index);
+                    return;
+                }
+            }
+        }
     }
     
 }
