@@ -110,7 +110,7 @@ public final class Jobs extends Job
         v_Job.setIntervalLen(1);
         v_Job.setStartTime("2000-01-01 00:00:00");
         v_Job.setXid(this.getXJavaID());
-        v_Job.setMethodName("");
+        v_Job.setMethodName("disasterRecoveryChecks");
         
         return v_Job;
     }
@@ -147,7 +147,7 @@ public final class Jobs extends Job
                         v_MasterStartTime = v_StartTime;
                         v_Master          = v_Item.getKey();
                     }
-                    else if ( v_MasterStartTime.differ(v_StartTime) < 0 )
+                    else if ( v_MasterStartTime.differ(v_StartTime) > 0 )
                     {
                         v_Slaves.add(v_Master);
                         v_MasterStartTime = v_StartTime;
@@ -161,17 +161,23 @@ public final class Jobs extends Job
             }
         }
         
+        if ( !Help.isNull(v_Slaves) )
+        {
+            ClientSocketCluster.sendCommands(v_Slaves ,Cluster.getClusterTimeout() ,this.getXJavaID() ,"setMaster" ,new Object[]{false} ,true ,"定时任务服务的灾备机制的Slave");
+        }
         
-        ClientSocketCluster.sendCommands(v_Slaves ,Cluster.getClusterTimeout() ,this.getXJavaID() ,"setMaster" ,new Object[]{false} ,true ,"定时任务服务的灾备机制的Slave");
-        v_Master.sendCommand(this.getXJavaID() ,"setMaster" ,new Object[]{true});
-        
-        StringBuilder v_Buffer = new StringBuilder();
-        v_Buffer.append(Date.getNowTime().getFullMilli());
-        v_Buffer.append("定时任务服务的灾备机制的Master：");
-        v_Buffer.append(v_Master.getHostName());
-        v_Buffer.append(":");
-        v_Buffer.append(v_Master.getPort() );
-        System.out.println(v_Buffer.toString());
+        if ( v_Master != null )
+        {
+            v_Master.sendCommand(this.getXJavaID() ,"setMaster" ,new Object[]{true});
+            
+            StringBuilder v_Buffer = new StringBuilder();
+            v_Buffer.append(Date.getNowTime().getFullMilli());
+            v_Buffer.append("定时任务服务的灾备机制的Master：");
+            v_Buffer.append(v_Master.getHostName());
+            v_Buffer.append(":");
+            v_Buffer.append(v_Master.getPort() );
+            System.out.println(v_Buffer.toString());
+        }
     }
     
     

@@ -876,6 +876,17 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
      */
     public boolean isAllow(final Date i_Now)
     {
+        if ( this.jobs != null )
+        {
+            if ( this.jobs.isDisasterRecovery() )
+            {
+                if ( !this.jobs.isMaster() )
+                {
+                    return false;
+                }
+            }
+        }
+        
         if ( Help.isNull(this.condition) )
         {
             return true;
