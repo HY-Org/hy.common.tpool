@@ -18,34 +18,50 @@
 		
 		
 		<!-- 任务配置信息 -->
-		<!-- $IntervalType_Second  间隔类型: 秒      -->
-		<!-- $IntervalType_Minute  间隔类型: 分钟    -->
-		<!-- $IntervalType_Hour    间隔类型: 小时    -->
-		<!-- $IntervalType_Day     间隔类型: 天      -->
-		<!-- $IntervalType_Week    间隔类型: 周      -->
-		<!-- $IntervalType_Month   间隔类型: 月      -->
-		<!-- $IntervalType_Manual  间隔类型: 手工执行 -->
 		<xconfig>
 			
 		    <job id="定时任务的标识">
 		    	<code>定时任务的标识</code>
 		    	<name>定时任务的名称</name>
 		    	<intervalType ref="this.$IntervalType_Minute"/>  <!-- 按分钟间隔执行 -->
+		    	                                                 <!-- $IntervalType_Second  间隔类型: 秒      -->
+		    	                                                 <!-- $IntervalType_Minute  间隔类型: 分钟    -->
+		    	                                                 <!-- $IntervalType_Hour    间隔类型: 小时    -->
+		    	                                                 <!-- $IntervalType_Day     间隔类型: 天      -->
+		    	                                                 <!-- $IntervalType_Week    间隔类型: 周      -->
+		    	                                                 <!-- $IntervalType_Month   间隔类型: 月      -->
+		    	                                                 <!-- $IntervalType_Manual  间隔类型: 手工执行 -->
 		    	<intervalLen>10</intervalLen>                    <!-- 每10分钟执行一次 -->
-		    	<startTime>2011-06-01 00:00:00</startTime>       <!-- 定时任务生效时间 -->
-		    	<xjavaID>JavaClass</xjavaID>                     <!-- 定时任务执行哪个Java类 -->
+		    	<startTime>2011-06-01 00:00:00</startTime>       <!-- 定时任务生效时间。多个开始时间用分号分隔 -->
+		    	<xid>JavaClass</xid>                             <!-- 定时任务执行哪个Java类 -->
 		    	<methodName>JavaMethod</methodName>              <!-- 定时任务执行Java类中的哪个方法 -->
-		    	<initExecute>true</initExecute>                  <!-- 初始化是否立即执行。默认为：false -->
+		    	<initExecute>true</initExecute>                  <!-- 初始化是否立即执行。默认为：false。可选的 -->
+		    	<condition><![CDATA[:MI != 2]]></condition>      <!-- 执行条件：不等于2分时才允许执行任务。可选的 -->
+		    	                                                 <!-- 执行条件的占位符：年份(:Y) -->
+		    	                                                 <!-- 执行条件的占位符：月份(:M) -->
+		    	                                                 <!-- 执行条件的占位符：日期(:D) -->
+		    	                                                 <!-- 执行条件的占位符：小时(:H) -->
+		    	                                                 <!-- 执行条件的占位符：分钟(:MI) -->
+		    	                                                 <!-- 执行条件的占位符：秒钟(:S) -->
+		    	                                                 <!-- 执行条件的占位符：年月日(:YMD)，格式为YYYYMMDD 样式的整数类型 -->
+		    	<cloudServer>192.168.1.100:2021</cloudServer>    <!-- 云服务上地址及端口。表示执行云端服务器上的任务。可选的 -->
 		    </job>
 		    
 		    
 		    
 		    <jobs id="JOBS" this="JOBS">
+		    	<call name="shutdown" />                         <!-- 停止所有定时任务。预防多次重复加载时的异常 -->
+	    		<call name="delJobs" />                          <!-- 删除所有定时任务。预防多次重复加载时的异常 -->
+	    	
 		    	<addJob ref="定时任务的标识01" />                  <!-- 将定时任务添加到任务池中 -->
 		    	<addJob ref="定时任务的标识02" />
 		    	<addJob ref="定时任务的标识n"  />
-		    	
-		    	<call name="startup" />                          <!-- 启动定时任务的调度任务 -->
+		    </jobs>
+		    
+		    
+		    <!-- 开启定时任务 -->
+		    <jobs id="JOBS" this="JOBS">
+	    		<call name="startup" />
 		    </jobs>
 			
 		</xconfig>
@@ -166,6 +182,24 @@
 
 
 
+### 定时任务灾备双活集群
+1. 定时任务的灾备集群由2台或多台服务组成。
+
+2. 多台定时任务服务器工作时，在同一时间，只有一台Master服务有权执行任务。其它服务为Slave服务，没有执行任务的权限。
+
+3. 当原Master50.89宕机时，50.241自动接管执行任务的权限，成为新的Master服务。
+
+4. 当原Master50.89只时暂时无法访问时（如网络原因），服务本是正常时，50.241先自动接管执行任务的权限，暂时成为新的Master服务，当50.89网络恢复时，再将执行权限还来50.89。
+
+5. 多台定时任务服务间，每1分钟监测一次心跳。
+
+6. 当连续心跳3次（数量可配置）均发现原Master服务异常时，才进行权限转移动作。
+
+7. 为了保证Master服务的性能，只有其它Slave服务对整体集群做心跳监测。Master服务不再对其它Slave服务做心跳监测。
+![image](images/定时任务灾备双活集群.png)
+
 ---
 #### 本项目引用Jar包，其源码链接如下
+引用 https://github.com/HY-ZhengWei/hy.common.net 类库
+
 引用 https://github.com/HY-ZhengWei/hy.common.base 类库
