@@ -7,66 +7,66 @@
 
 ### 定时任务的代码样例（XML配置举例）
 ```xml
-	<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
+
+<config>
+
+	<import name="xconfig"         class="java.util.ArrayList" />
+	<import name="job"             class="org.hy.common.thread.Job" />
+	<import name="jobs"            class="org.hy.common.thread.Jobs" />
 	
-	<config>
 	
-		<import name="xconfig"         class="java.util.ArrayList" />
-		<import name="job"             class="org.hy.common.thread.Job" />
-		<import name="jobs"            class="org.hy.common.thread.Jobs" />
+	
+	<!-- 任务配置信息 -->
+	<xconfig>
 		
+	    <job id="定时任务的标识">
+	    	<code>定时任务的标识</code>
+	    	<name>定时任务的名称</name>
+	    	<intervalType ref="this.$IntervalType_Minute"/>  <!-- 按分钟间隔执行 -->
+	    	                                                 <!-- $IntervalType_Second  间隔类型: 秒      -->
+	    	                                                 <!-- $IntervalType_Minute  间隔类型: 分钟    -->
+	    	                                                 <!-- $IntervalType_Hour    间隔类型: 小时    -->
+	    	                                                 <!-- $IntervalType_Day     间隔类型: 天      -->
+	    	                                                 <!-- $IntervalType_Week    间隔类型: 周      -->
+	    	                                                 <!-- $IntervalType_Month   间隔类型: 月      -->
+	    	                                                 <!-- $IntervalType_Manual  间隔类型: 手工执行 -->
+	    	<intervalLen>10</intervalLen>                    <!-- 每10分钟执行一次 -->
+	    	<startTime>2011-06-01 00:00:00</startTime>       <!-- 定时任务生效时间。多个开始时间用分号分隔 -->
+	    	<xid>JavaClass</xid>                             <!-- 定时任务执行哪个Java类 -->
+	    	<methodName>JavaMethod</methodName>              <!-- 定时任务执行Java类中的哪个方法 -->
+	    	<initExecute>true</initExecute>                  <!-- 初始化是否立即执行。默认为：false。可选的 -->
+	    	<condition><![CDATA[:MI != 2]]></condition>      <!-- 执行条件：不等于2分时才允许执行任务。可选的 -->
+	    	                                                 <!-- 执行条件的占位符：年份(:Y) -->
+	    	                                                 <!-- 执行条件的占位符：月份(:M) -->
+	    	                                                 <!-- 执行条件的占位符：日期(:D) -->
+	    	                                                 <!-- 执行条件的占位符：小时(:H) -->
+	    	                                                 <!-- 执行条件的占位符：分钟(:MI) -->
+	    	                                                 <!-- 执行条件的占位符：秒钟(:S) -->
+	    	                                                 <!-- 执行条件的占位符：年月日(:YMD)，格式为YYYYMMDD 样式的整数类型 -->
+	    	<cloudServer>192.168.1.100:2021</cloudServer>    <!-- 云服务上地址及端口。表示执行云端服务器上的任务。可选的 -->
+	    </job>
+	    
+	    
+	    
+	    <jobs id="JOBS" this="JOBS">
+	    	<call name="shutdown" />                         <!-- 停止所有定时任务。预防多次重复加载时的异常 -->
+    		<call name="delJobs" />                          <!-- 删除所有定时任务。预防多次重复加载时的异常 -->
+    	
+	    	<addJob ref="定时任务的标识01" />                  <!-- 将定时任务添加到任务池中 -->
+	    	<addJob ref="定时任务的标识02" />
+	    	<addJob ref="定时任务的标识n"  />
+	    </jobs>
+	    
+	    
+	    <!-- 开启定时任务 -->
+	    <jobs id="JOBS" this="JOBS">
+    		<call name="startup" />
+	    </jobs>
 		
-		
-		<!-- 任务配置信息 -->
-		<xconfig>
-			
-		    <job id="定时任务的标识">
-		    	<code>定时任务的标识</code>
-		    	<name>定时任务的名称</name>
-		    	<intervalType ref="this.$IntervalType_Minute"/>  <!-- 按分钟间隔执行 -->
-		    	                                                 <!-- $IntervalType_Second  间隔类型: 秒      -->
-		    	                                                 <!-- $IntervalType_Minute  间隔类型: 分钟    -->
-		    	                                                 <!-- $IntervalType_Hour    间隔类型: 小时    -->
-		    	                                                 <!-- $IntervalType_Day     间隔类型: 天      -->
-		    	                                                 <!-- $IntervalType_Week    间隔类型: 周      -->
-		    	                                                 <!-- $IntervalType_Month   间隔类型: 月      -->
-		    	                                                 <!-- $IntervalType_Manual  间隔类型: 手工执行 -->
-		    	<intervalLen>10</intervalLen>                    <!-- 每10分钟执行一次 -->
-		    	<startTime>2011-06-01 00:00:00</startTime>       <!-- 定时任务生效时间。多个开始时间用分号分隔 -->
-		    	<xid>JavaClass</xid>                             <!-- 定时任务执行哪个Java类 -->
-		    	<methodName>JavaMethod</methodName>              <!-- 定时任务执行Java类中的哪个方法 -->
-		    	<initExecute>true</initExecute>                  <!-- 初始化是否立即执行。默认为：false。可选的 -->
-		    	<condition><![CDATA[:MI != 2]]></condition>      <!-- 执行条件：不等于2分时才允许执行任务。可选的 -->
-		    	                                                 <!-- 执行条件的占位符：年份(:Y) -->
-		    	                                                 <!-- 执行条件的占位符：月份(:M) -->
-		    	                                                 <!-- 执行条件的占位符：日期(:D) -->
-		    	                                                 <!-- 执行条件的占位符：小时(:H) -->
-		    	                                                 <!-- 执行条件的占位符：分钟(:MI) -->
-		    	                                                 <!-- 执行条件的占位符：秒钟(:S) -->
-		    	                                                 <!-- 执行条件的占位符：年月日(:YMD)，格式为YYYYMMDD 样式的整数类型 -->
-		    	<cloudServer>192.168.1.100:2021</cloudServer>    <!-- 云服务上地址及端口。表示执行云端服务器上的任务。可选的 -->
-		    </job>
-		    
-		    
-		    
-		    <jobs id="JOBS" this="JOBS">
-		    	<call name="shutdown" />                         <!-- 停止所有定时任务。预防多次重复加载时的异常 -->
-	    		<call name="delJobs" />                          <!-- 删除所有定时任务。预防多次重复加载时的异常 -->
-	    	
-		    	<addJob ref="定时任务的标识01" />                  <!-- 将定时任务添加到任务池中 -->
-		    	<addJob ref="定时任务的标识02" />
-		    	<addJob ref="定时任务的标识n"  />
-		    </jobs>
-		    
-		    
-		    <!-- 开启定时任务 -->
-		    <jobs id="JOBS" this="JOBS">
-	    		<call name="startup" />
-		    </jobs>
-			
-		</xconfig>
-		
-	</config>
+	</xconfig>
+	
+</config>
 ```
 
 
