@@ -882,7 +882,7 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
             {
                 if ( !this.jobs.isMaster() )
                 {
-                    return false;
+                    return Jobs.$JOB_DisasterRecoverys_Check.equals(this.xjavaID);
                 }
             }
         }

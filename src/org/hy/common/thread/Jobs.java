@@ -45,24 +45,10 @@ public final class Jobs extends Job
 {
  
     /** 定时任务服务的灾备机制的心跳任务的XJavaID */
-    private static final String  $JOB_DisasterRecoverys_Check = "JOB_DisasterRecoverys_Check";
+    public static final String  $JOB_DisasterRecoverys_Check = "JOB_DisasterRecoverys_Check";
     
     /** 启动时间。即 startup() 方法的执行时间 */
     private Date                 startTime;
-    
-    /** 
-     * 定时任务的灾备机制：灾备服务器。
-     * 灾备服务包括自己在内的所有服务器 。
-     * 
-     * 哪台服务的 Jobs.startTime 时间最早，即作为Master主服务，其它均为Slave从服务。
-     * 只有Master主服务有权执行任务，其它Slave从服务作为灾备服务（仍然计算任务的计划时间，但不执行任务）。
-     * 
-     * 此属性为：可选项。集合元素个数大于等于2时，灾备机制才生效（其中包括本服务自己，所以只少是2台服务时才生效）。
-     */
-    private List<ClientSocket>   disasterRecoverys;
-    
-    /** 是否为Master主服务 */
-    private boolean              isMaster;
     
     /**
      * 所有计划任务配置信息
@@ -79,6 +65,36 @@ public final class Jobs extends Job
     /** 最小轮询间隔类型 */
     private int                  minIntervalType;
     
+    /** 
+     * 定时任务的灾备机制：灾备服务器。
+     * 灾备服务包括自己在内的所有服务器 。
+     * 
+     * 哪台服务的 Jobs.startTime 时间最早，即作为Master主服务，其它均为Slave从服务。
+     * 只有Master主服务有权执行任务，其它Slave从服务作为灾备服务（仍然计算任务的计划时间，但不执行任务）。
+     * 
+     * 此属性为：可选项。集合元素个数大于等于2时，灾备机制才生效（其中包括本服务自己，所以只少是2台服务时才生效）。
+     */
+    private List<ClientSocket>   disasterRecoverys;
+    
+    /** 是否为Master主服务 */
+    private boolean              isMaster;
+    
+    /** 定时任务服务的灾备机制的Job */
+    private Job                  disasterRecoveryJob;
+    
+    /** 灾备检测的最大次数。当连续数次检测到原Master服务的异常时，再由Slave从服务接管Master执行权限。 */
+    private int                  disasterCheckMax;
+    
+    /** 
+     * Slave从服务变成Master主服务前，Slave从服务每获得一次Master执行权限，此属性++。 
+     * 
+     * 当 getMasterCount >= disasterCheckMax 时，Slave从服务才真正获得Master执行权限。
+     * 在此期间，原Master服务心跳再次成功时，getMasterCount将变成 0，准备开始重新计值。
+     * 
+     * 预防某一次心跳检测的异常(如网络原因，原Master服务是正常的)，而造成多台Master服务并存的情况出现。
+     */
+    private int                  getMasterCount;
+    
     
     
     public Jobs()
@@ -86,6 +102,9 @@ public final class Jobs extends Job
         this.jobList    = new ArrayList<Job>();
         this.jobMonitor = new Counter<String>();
         this.setDesc("Jobs Total scheduling");
+        
+        this.disasterCheckMax = 3;
+        this.getMasterCount   = 0;
     }
     
     
@@ -99,20 +118,24 @@ public final class Jobs extends Job
      *
      * @return
      */
-    private Job createDisasterRecoveryJob()
+    public synchronized Job createDisasterRecoveryJob()
     {
-        Job v_Job = new Job();
+        if ( this.disasterRecoveryJob == null )
+        {
+            this.disasterRecoveryJob = new Job();
+            
+            this.disasterRecoveryJob.setXJavaID($JOB_DisasterRecoverys_Check);
+            this.disasterRecoveryJob.setCode(this.disasterRecoveryJob.getXJavaID());
+            this.disasterRecoveryJob.setName("定时任务服务的灾备机制的心跳任务");
+            this.disasterRecoveryJob.setIntervalType(Job.$IntervalType_Minute);
+            this.disasterRecoveryJob.setIntervalLen(1);
+            this.disasterRecoveryJob.setStartTime("2000-01-01 00:00:00");
+            this.disasterRecoveryJob.setXid(this.getXJavaID());
+            this.disasterRecoveryJob.setMethodName("disasterRecoveryChecks");
+            this.disasterRecoveryJob.setMyJobs(this);
+        }
         
-        v_Job.setXJavaID($JOB_DisasterRecoverys_Check);
-        v_Job.setCode(v_Job.getXJavaID());
-        v_Job.setName("定时任务服务的灾备机制的心跳任务");
-        v_Job.setIntervalType(Job.$IntervalType_Minute);
-        v_Job.setIntervalLen(1);
-        v_Job.setStartTime("2000-01-01 00:00:00");
-        v_Job.setXid(this.getXJavaID());
-        v_Job.setMethodName("disasterRecoveryChecks");
-        
-        return v_Job;
+        return this.disasterRecoveryJob;
     }
     
     
@@ -131,6 +154,7 @@ public final class Jobs extends Job
         Date                                     v_MasterStartTime = null;
         ClientSocket                             v_Master          = null;
         List<ClientSocket>                       v_Slaves          = new ArrayList<ClientSocket>();
+        int                                      v_Succeed         = 0;
         
         for (Map.Entry<ClientSocket ,CommunicationResponse> v_Item : v_ResponseDatas.entrySet())
         {
@@ -140,6 +164,7 @@ public final class Jobs extends Job
             {
                 if ( v_ResponseData.getData() != null && v_ResponseData.getData() instanceof Date )
                 {
+                    v_Succeed++;
                     Date v_StartTime = (Date)v_ResponseData.getData();
                     
                     if ( v_MasterStartTime == null )
@@ -163,20 +188,20 @@ public final class Jobs extends Job
         
         if ( !Help.isNull(v_Slaves) )
         {
-            ClientSocketCluster.sendCommands(v_Slaves ,Cluster.getClusterTimeout() ,this.getXJavaID() ,"setMaster" ,new Object[]{false} ,true ,"定时任务服务的灾备机制的Slave");
+            ClientSocketCluster.sendCommands(v_Slaves ,Cluster.getClusterTimeout() ,this.getXJavaID() ,"setMaster" ,new Object[]{false ,v_Succeed==this.disasterRecoverys.size()} ,true ,"定时任务服务的灾备机制的Slave");
         }
         
         if ( v_Master != null )
         {
-            v_Master.sendCommand(this.getXJavaID() ,"setMaster" ,new Object[]{true});
-            
             StringBuilder v_Buffer = new StringBuilder();
             v_Buffer.append(Date.getNowTime().getFullMilli());
-            v_Buffer.append("定时任务服务的灾备机制的Master：");
+            v_Buffer.append(" 定时任务服务的灾备机制的Master：");
             v_Buffer.append(v_Master.getHostName());
             v_Buffer.append(":");
-            v_Buffer.append(v_Master.getPort() );
+            v_Buffer.append(v_Master.getPort());
             System.out.println(v_Buffer.toString());
+            
+            v_Master.sendCommand(this.getXJavaID() ,"setMaster" ,new Object[]{true ,v_Succeed==this.disasterRecoverys.size()});
         }
     }
     
@@ -189,13 +214,11 @@ public final class Jobs extends Job
     {
         if ( this.isDisasterRecovery() )
         {
-            disasterRecoveryChecks();
-            
-            if ( !this.isMaster )
-            {
-                // Master主服务不监控Slave从服务，只有Slave从服务监控主服务的存活性。
-                this.jobList.add(this.createDisasterRecoveryJob());
-            }
+            // Master主服务不监控Slave从服务，只有Slave从服务监控主服务的存活性。
+            // 但，这里也必须先监控所有Slave从服务，只有监测到所有服务均正常时，才能移除Master主服务上的心跳监测。
+            // 这是为了防止双Master服务现像出现。如，在B服务在启动时，A服务已启动在先，但因为网络等原因A服务暂时无法获取心跳监测的反馈。
+            // B服务启动时，如果不添加上面断定，当A服务网络恢复后，就有可能出现双Master服务的问题。
+            this.addJob(this.createDisasterRecoveryJob());
         }
         
         Help.toSort(this.jobList ,"intervalType");
@@ -582,23 +605,69 @@ public final class Jobs extends Job
     /**
      * 设置：是否为Master主服务
      * 
-     * @param isMaster 
+     * @param i_IsMaster  本服务是否为Master主服务
+     * @param i_AllOK     是否所有服务均正常
      */
-    public void setMaster(boolean isMaster)
+    public synchronized void setMaster(boolean i_IsMaster ,boolean i_AllOK)
     {
-        this.isMaster = isMaster;
-        
-        if ( this.isMaster )
+        if ( i_IsMaster && i_AllOK )
         {
+            // 当所有服务均正常时，判定出的Master主服务，才是真正的主服务，这时才能移除主服务对其它Slave从服务的监测
             for (int v_Index=this.jobList.size() - 1; v_Index>=0; v_Index--)
             {
                 if ( $JOB_DisasterRecoverys_Check.equals(this.jobList.get(v_Index).getXJavaID()) )
                 {
                     this.jobList.remove(v_Index);
-                    return;
+                    break;
                 }
             }
+            
+            if ( !this.isMaster )
+            {
+                System.out.println(Date.getNowTime().getFullMilli() + " 在所有服务的同意下，本服务接管定时任务的执行权限。");
+            }
+            this.getMasterCount = 0;
         }
+        else if ( i_IsMaster && !this.isMaster )
+        {
+            this.getMasterCount++;
+            if ( this.getMasterCount < this.disasterCheckMax )
+            {
+                System.out.println(Date.getNowTime().getFullMilli() + " 本服务第 " + this.getMasterCount +" 次准备接管定时任务的执行权限，共准备 " + this.disasterCheckMax + " 次。");
+                return;
+            }
+            
+            System.out.println(Date.getNowTime().getFullMilli() + " 本服务在第 " + this.getMasterCount + " 次正式接管定时任务的执行权限。");
+            this.getMasterCount = 0;
+        }
+        else if ( !i_IsMaster )
+        {
+            this.getMasterCount = 0; 
+        }
+        
+        this.isMaster = i_IsMaster;
+    }
+
+
+    
+    /**
+     * 获取：灾备检测的最大次数。当连续数次检测到原Master服务的异常时，再由Slave从服务接管Master执行权限。
+     */
+    public int getDisasterCheckMax()
+    {
+        return disasterCheckMax;
+    }
+    
+
+    
+    /**
+     * 设置：灾备检测的最大次数。当连续数次检测到原Master服务的异常时，再由Slave从服务接管Master执行权限。
+     * 
+     * @param disasterCheckMax 
+     */
+    public void setDisasterCheckMax(int disasterCheckMax)
+    {
+        this.disasterCheckMax = disasterCheckMax;
     }
     
 }
