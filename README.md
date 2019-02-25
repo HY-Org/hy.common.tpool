@@ -204,6 +204,12 @@
 
 
 
+### 定时任务的监控界面
+访问网址格式为：http://IP:Port/服务名/analyses/analyseObject?Job=Y
+![image](images/Jobs.png)
+
+
+
 ### 定时任务灾备双活集群
 1. 定时任务的灾备集群由2台或多台服务组成。
 
