@@ -14,6 +14,8 @@
 	<import name="xconfig"         class="java.util.ArrayList" />
 	<import name="job"             class="org.hy.common.thread.Job" />
 	<import name="jobs"            class="org.hy.common.thread.Jobs" />
+	<import name="servers"         class="java.util.ArrayList" />
+	<import name="server"          class="org.hy.common.net.ClientSocket" />
 	
 	
 	
@@ -48,8 +50,28 @@
 	    </job>
 	    
 	    
+	    <!-- 灾备机制的服务列表。可选的 -->
+	    <servers id="DisasterRecoverys">
+	    	<server>
+	        	<constructor>
+       				<String>192.168.1.101</String>
+       				<int>9021</int>
+	        	</constructor>
+        	</server>
+        	
+        	<server>
+	        	<constructor>
+       				<String>192.168.1.102</String>
+       				<int>9021</int>
+	        	</constructor>
+        	</server>
+	    </servers>
+	    
 	    
 	    <jobs id="JOBS" this="JOBS">
+	    
+	    	<disasterRecoverys ref="DisasterRecoverys" />    <!-- 灾备机制的服务列表。可选的 -->
+	    	
 	    	<call name="shutdown" />                         <!-- 停止所有定时任务。预防多次重复加载时的异常 -->
     		<call name="delJobs" />                          <!-- 删除所有定时任务。预防多次重复加载时的异常 -->
     	
