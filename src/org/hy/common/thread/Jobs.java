@@ -132,7 +132,6 @@ public final class Jobs extends Job
             this.disasterRecoveryJob.setStartTime("2000-01-01 00:00:00");
             this.disasterRecoveryJob.setXid(this.getXJavaID());
             this.disasterRecoveryJob.setMethodName("disasterRecoveryChecks");
-            this.disasterRecoveryJob.setMyJobs(this);
         }
         
         return this.disasterRecoveryJob;
@@ -276,6 +275,7 @@ public final class Jobs extends Job
             throw new NullPointerException("Job.getCode() is null."); 
         }
         
+        i_Job.setMyJobs(this);
         this.jobList.add(i_Job);
         
         // 是否在初始时(即添加到Jobs时)，就执行一次任务
