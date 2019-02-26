@@ -147,17 +147,25 @@ public final class Jobs extends Job
      * @version     v1.0
      *
      */
-    public void disasterRecoveryChecks()
+    public List<JobDisasterRecoveryReport> disasterRecoveryChecks()
     {
         Map<ClientSocket ,CommunicationResponse> v_ResponseDatas   = ClientSocketCluster.sendCommands(this.disasterRecoverys ,Cluster.getClusterTimeout() ,this.getXJavaID() ,"getStartTime" ,true ,"定时任务服务的灾备心跳");
         Date                                     v_MasterStartTime = null;
         ClientSocket                             v_Master          = null;
         List<ClientSocket>                       v_Slaves          = new ArrayList<ClientSocket>();
         int                                      v_Succeed         = 0;
+        List<JobDisasterRecoveryReport>          v_Reports         = new ArrayList<JobDisasterRecoveryReport>();
+        JobDisasterRecoveryReport                v_MasterReport    = null;
+        
         
         for (Map.Entry<ClientSocket ,CommunicationResponse> v_Item : v_ResponseDatas.entrySet())
         {
-            CommunicationResponse v_ResponseData = v_Item.getValue();
+            CommunicationResponse     v_ResponseData = v_Item.getValue();
+            JobDisasterRecoveryReport v_Report       = new JobDisasterRecoveryReport();
+            
+            v_Report.setHostName(v_Item.getKey().getHostName());
+            v_Report.setPort(    v_Item.getKey().getPort());
+            v_Report.setOK(      false);
             
             if ( v_ResponseData.getResult() == 0 )
             {
@@ -166,16 +174,26 @@ public final class Jobs extends Job
                     v_Succeed++;
                     Date v_StartTime = (Date)v_ResponseData.getData();
                     
+                    v_Report.setOK(true);
+                    v_Report.setStartTime(v_StartTime);
+                    
                     if ( v_MasterStartTime == null )
                     {
                         v_MasterStartTime = v_StartTime;
                         v_Master          = v_Item.getKey();
+                        
+                        v_Report.setMaster(true);
+                        v_MasterReport = v_Report;
                     }
                     else if ( v_MasterStartTime.differ(v_StartTime) > 0 )
                     {
                         v_Slaves.add(v_Master);
                         v_MasterStartTime = v_StartTime;
                         v_Master          = v_Item.getKey();
+                        
+                        v_MasterReport.setMaster(false);
+                        v_Report.setMaster(true);
+                        v_MasterReport = v_Report;
                     }
                     else
                     {
@@ -183,6 +201,8 @@ public final class Jobs extends Job
                     }
                 }
             }
+            
+            v_Reports.add(v_Report);
         }
         
         if ( !Help.isNull(v_Slaves) )
@@ -202,6 +222,8 @@ public final class Jobs extends Job
             
             v_Master.sendCommand(this.getXJavaID() ,"setMaster" ,new Object[]{true ,v_Succeed==this.disasterRecoverys.size()});
         }
+        
+        return v_Reports;
     }
     
     
