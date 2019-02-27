@@ -275,7 +275,7 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
             // 云服务执行：当配置CloudServer时。
             else
             {
-                (new Execute(this.cloudSocket ,"sendCommand" ,new Object[]{this.xid ,this.methodName.trim()})).start();
+                (new Execute(this.cloudSocket ,"sendCommand" ,new Object[]{this.xid ,this.methodName.trim() ,false})).start();
             }
         }
         catch (Exception exce)
