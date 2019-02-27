@@ -228,6 +228,13 @@
 下面的组网图，为某项目的实战组网结构。
 ![image](images/定时任务灾备双活集群.png)
 
+
+
+### 定时任务灾备双活集群服务的监控页面
+![image](images/定时任务灾备双活集群.监控页面.png)
+
+
+
 ---
 #### 本项目引用Jar包，其源码链接如下
 引用 https://github.com/HY-ZhengWei/hy.common.net 类库
