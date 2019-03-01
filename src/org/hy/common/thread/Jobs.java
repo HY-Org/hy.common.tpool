@@ -640,17 +640,17 @@ public final class Jobs extends Job
         if ( i_IsMaster && i_AllOK )
         {
             // 当所有服务均正常时，判定出的Master主服务，才是真正的主服务，这时才能移除主服务对其它Slave从服务的监测
-            for (int v_Index=this.jobList.size() - 1; v_Index>=0; v_Index--)
-            {
-                if ( $JOB_DisasterRecoverys_Check.equals(this.jobList.get(v_Index).getXJavaID()) )
-                {
-                    this.jobList.remove(v_Index);
-                    break;
-                }
-            }
-            
             if ( !this.isMaster )
             {
+                for (int v_Index=this.jobList.size() - 1; v_Index>=0; v_Index--)
+                {
+                    if ( $JOB_DisasterRecoverys_Check.equals(this.jobList.get(v_Index).getXJavaID()) )
+                    {
+                        this.jobList.remove(v_Index);
+                        break;
+                    }
+                }
+            
                 System.out.println(Date.getNowTime().getFullMilli() + " 在所有服务的同意下，本服务接管定时任务的执行权限。");
             }
             this.getMasterCount = 0;
@@ -672,8 +672,18 @@ public final class Jobs extends Job
             this.getMasterCount = 0; 
         }
         
-        this.isMaster      = i_IsMaster;
-        this.getMasterTime = this.isMaster ? new Date() : null;
+        this.isMaster = i_IsMaster;
+        if ( this.isMaster )
+        {
+            if ( this.getMasterTime == null )
+            {
+                this.getMasterTime = new Date();
+            }
+        }
+        else
+        {
+            this.getMasterTime = null;
+        }
     }
 
 
