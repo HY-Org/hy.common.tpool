@@ -35,6 +35,9 @@ public class JobDisasterRecoveryReport extends SerializableDef
     
     /** 启动时间。即 startup() 方法的执行时间 */
     private Date     startTime;
+    
+    /** 得到Master执行权限的时间点。当为Slave时，此属性为NULL */
+    private Date     masterTime;
 
     
     
@@ -144,6 +147,28 @@ public class JobDisasterRecoveryReport extends SerializableDef
     public void setOK(boolean isOK)
     {
         this.isOK = isOK;
+    }
+
+
+    
+    /**
+     * 获取：得到Master执行权限的时间点。当为Slave时，此属性为NULL
+     */
+    public Date getMasterTime()
+    {
+        return masterTime;
+    }
+    
+
+    
+    /**
+     * 设置：得到Master执行权限的时间点。当为Slave时，此属性为NULL
+     * 
+     * @param masterTime 
+     */
+    public void setMasterTime(Date masterTime)
+    {
+        this.masterTime = masterTime;
     }
     
 }

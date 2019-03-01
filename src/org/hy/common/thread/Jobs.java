@@ -95,6 +95,9 @@ public final class Jobs extends Job
      */
     private int                  getMasterCount;
     
+    /** 得到Master执行权限的时间点。当为Slave时，此属性为NULL */
+    private Date                 getMasterTime;
+    
     
     
     public Jobs()
@@ -105,6 +108,7 @@ public final class Jobs extends Job
         
         this.disasterCheckMax = 3;
         this.getMasterCount   = 0;
+        this.getMasterTime    = null;
     }
     
     
@@ -149,7 +153,7 @@ public final class Jobs extends Job
      */
     public List<JobDisasterRecoveryReport> disasterRecoveryChecks()
     {
-        Map<ClientSocket ,CommunicationResponse> v_ResponseDatas   = ClientSocketCluster.sendCommands(this.disasterRecoverys ,Cluster.getClusterTimeout() ,this.getXJavaID() ,"getStartTime" ,true ,"定时任务服务的灾备心跳");
+        Map<ClientSocket ,CommunicationResponse> v_ResponseDatas   = ClientSocketCluster.sendCommands(this.disasterRecoverys ,Cluster.getClusterTimeout() ,this.getXJavaID() ,"getDisasterRecoveryReport" ,true ,"定时任务服务的灾备心跳");
         Date                                     v_MasterStartTime = null;
         ClientSocket                             v_Master          = null;
         List<ClientSocket>                       v_Slaves          = new ArrayList<ClientSocket>();
@@ -169,26 +173,27 @@ public final class Jobs extends Job
             
             if ( v_ResponseData.getResult() == 0 )
             {
-                if ( v_ResponseData.getData() != null && v_ResponseData.getData() instanceof Date )
+                if ( v_ResponseData.getData() != null && v_ResponseData.getData() instanceof JobDisasterRecoveryReport )
                 {
                     v_Succeed++;
-                    Date v_StartTime = (Date)v_ResponseData.getData();
+                    JobDisasterRecoveryReport v_ReportTemp = (JobDisasterRecoveryReport)v_ResponseData.getData();
                     
                     v_Report.setOK(true);
-                    v_Report.setStartTime(v_StartTime);
+                    v_Report.setStartTime( v_ReportTemp.getStartTime());
+                    v_Report.setMasterTime(v_ReportTemp.getMasterTime());
                     
                     if ( v_MasterStartTime == null )
                     {
-                        v_MasterStartTime = v_StartTime;
+                        v_MasterStartTime = v_Report.getStartTime();
                         v_Master          = v_Item.getKey();
                         
                         v_Report.setMaster(true);
                         v_MasterReport = v_Report;
                     }
-                    else if ( v_MasterStartTime.differ(v_StartTime) > 0 )
+                    else if ( v_MasterStartTime.differ(v_Report.getStartTime()) > 0 )
                     {
                         v_Slaves.add(v_Master);
-                        v_MasterStartTime = v_StartTime;
+                        v_MasterStartTime = v_Report.getStartTime();
                         v_Master          = v_Item.getKey();
                         
                         v_MasterReport.setMaster(false);
@@ -667,7 +672,8 @@ public final class Jobs extends Job
             this.getMasterCount = 0; 
         }
         
-        this.isMaster = i_IsMaster;
+        this.isMaster      = i_IsMaster;
+        this.getMasterTime = this.isMaster ? new Date() : null;
     }
 
 
@@ -690,6 +696,39 @@ public final class Jobs extends Job
     public void setDisasterCheckMax(int disasterCheckMax)
     {
         this.disasterCheckMax = disasterCheckMax;
+    }
+
+
+    
+    /**
+     * 获取：得到Master执行权限的时间点。当为Slave时，此属性为NULL
+     */
+    public Date getMasterTime()
+    {
+        return getMasterTime;
+    }
+    
+    
+    
+    /**
+     * 获取本机的灾备报告
+     * 
+     * @author      ZhengWei(HY)
+     * @createDate  2019-03-01
+     * @version     v1.0
+     *
+     * @return
+     */
+    public JobDisasterRecoveryReport getDisasterRecoveryReport()
+    {
+        JobDisasterRecoveryReport v_Report = new JobDisasterRecoveryReport();
+        
+        v_Report.setOK(        true);
+        v_Report.setMaster(    this.isMaster);
+        v_Report.setMasterTime(this.getMasterTime);
+        v_Report.setStartTime( this.startTime);
+        
+        return v_Report;
     }
     
 }
