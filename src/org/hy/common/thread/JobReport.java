@@ -107,6 +107,9 @@ public class JobReport extends SerializableDef
                 
             case Job.$IntervalType_Month:
                 this.intervalType = "月";   break;
+            
+            case Job.$IntervalType_Year:
+                this.intervalType = "年";   break;
                 
             default:
                 this.intervalType = "手工"; 
