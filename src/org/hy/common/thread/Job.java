@@ -1,12 +1,5 @@
 package org.hy.common.thread;
 
-import org.hy.common.xml.XJava;
-
-import com.greenpineyu.fel.FelEngine;
-import com.greenpineyu.fel.FelEngineImpl;
-import com.greenpineyu.fel.context.FelContext;
-import com.greenpineyu.fel.context.MapContext;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,6 +10,12 @@ import org.hy.common.Help;
 import org.hy.common.StringHelp;
 import org.hy.common.XJavaID;
 import org.hy.common.net.ClientSocket;
+import org.hy.common.xml.XJava;
+
+import com.greenpineyu.fel.FelEngine;
+import com.greenpineyu.fel.FelEngineImpl;
+import com.greenpineyu.fel.context.FelContext;
+import com.greenpineyu.fel.context.MapContext;
 
 
 
@@ -45,6 +44,8 @@ import org.hy.common.net.ClientSocket;
  *              v7.0  2019-02-17  添加：执行云服务上的任务。
  *                                     只须额外配置云服务的IP:端口即可。
  *                                     当然，云服务要开启通讯的，见 https://github.com/HY-Org/hy.common.net
+ *              v8.0  2019-03-02  添加：按年份间隔的时间类型（都用到年周期执行的，哈哈）。
+ *                                建议人：王力
  */
 public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
 {
@@ -65,6 +66,9 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
     
     /** 间隔类型: 月 */
     public  static final int       $IntervalType_Month  = 1;
+    
+    /** 间隔类型: 年 */
+    public  static final int       $IntervalType_Year   = 2;
     
     /** 间隔类型: 手工执行 */
     public  static final int       $IntervalType_Manual = -1;
@@ -424,7 +428,7 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
                 }
             }
             // 间隔类型: 月
-            else
+            else if ( this.intervalType == $IntervalType_Month )
             {
                 // 为了性能，所以在if分支语句中写for
                 for (Date v_NextTime : this.nextTimes)
@@ -434,15 +438,60 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
                         continue;
                     }
                     
+                    int v_AddCount = 0;
                     while ( i_Now.getTime() >= v_NextTime.getTime() )
                     {
                         v_NextTime.setDate(v_NextTime.getNextMonth());
+                        v_AddCount++;
                     }
                     
                     // 计算间隔
-                    for (int i=1; i<this.intervalLen; i++)
+                    int i = 0;
+                    if ( this.intervalLen == 1 )
+                    {
+                        i = 1;
+                    }
+                    else
+                    {
+                        i = v_AddCount % this.intervalLen;
+                    }
+                    for (; i<this.intervalLen; i++)
                     {
                         v_NextTime.setDate(v_NextTime.getNextMonth());
+                    }
+                }
+            }
+            // 间隔类型: 年
+            else if ( this.intervalType == $IntervalType_Year )
+            {
+                // 为了性能，所以在if分支语句中写for
+                for (Date v_NextTime : this.nextTimes)
+                {
+                    if ( i_Now.getTime() <= v_NextTime.getTime() )
+                    {
+                        continue;
+                    }
+                    
+                    int v_AddCount = 0;
+                    while ( i_Now.getTime() >= v_NextTime.getTime() )
+                    {
+                        v_NextTime.setDate(v_NextTime.getNextYear());
+                        v_AddCount++;
+                    }
+                    
+                    // 计算间隔
+                    int i = 0;
+                    if ( this.intervalLen == 1 )
+                    {
+                        i = 1;
+                    }
+                    else
+                    {
+                        i = v_AddCount % this.intervalLen;
+                    }
+                    for (; i<this.intervalLen; i++)
+                    {
+                        v_NextTime.setDate(v_NextTime.getNextYear());
                     }
                 }
             }
@@ -578,6 +627,18 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
     }
 
     
+    /**
+     * 设置：开始时间组。多个开始时间用分号分隔。多个开始时间对 "间隔类型:秒、分" 是无效的（只取最小时间为开始时间）
+     * 
+     * @param startTimes 
+     */
+    public void setStartTimes(List<Date> startTimes)
+    {
+        this.startTimes = startTimes;
+        Help.toSort(this.startTimes);
+    }
+
+
     /**
      * 设置：开始时间组。多个开始时间用分号分隔。多个开始时间对 "间隔类型:秒、分" 是无效的（只取最小时间为开始时间）
      * 
