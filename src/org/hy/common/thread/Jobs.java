@@ -262,7 +262,8 @@ public final class Jobs extends Job
         }
         
         TaskPool.putTask(this);
-        this.startTime = new Date();
+        this.startTime          = new Date();
+        this.getMasterTime = null;
     }
     
     
