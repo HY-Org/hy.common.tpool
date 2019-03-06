@@ -82,6 +82,9 @@ public final class Jobs extends Job
     /** 定时任务服务的灾备机制的Job */
     private Job                  disasterRecoveryJob;
     
+    /** 标记 disasterRecoveryJob 是否从 jobList 中移除  */
+    private boolean              disasterRecoveryJobIsValid;
+    
     /** 灾备检测的最大次数。当连续数次检测到原Master服务的异常时，再由Slave从服务接管Master执行权限。 */
     private int                  disasterCheckMax;
     
@@ -238,6 +241,11 @@ public final class Jobs extends Job
      */
     public synchronized void startup()
     {
+        this.isMaster                   = false;
+        this.disasterRecoveryJobIsValid = false;
+        this.getMasterTime              = null;
+        this.getMasterCount             = 0;
+        
         if ( this.isDisasterRecovery() )
         {
             // Master主服务不监控Slave从服务，只有Slave从服务监控主服务的存活性。
@@ -245,6 +253,7 @@ public final class Jobs extends Job
             // 这是为了防止双Master服务现像出现。如，在B服务在启动时，A服务已启动在先，但因为网络等原因A服务暂时无法获取心跳监测的反馈。
             // B服务启动时，如果不添加上面断定，当A服务网络恢复后，就有可能出现双Master服务的问题。
             this.addJob(this.createDisasterRecoveryJob());
+            this.disasterRecoveryJobIsValid = true;
         }
         
         Help.toSort(this.jobList ,"intervalType");
@@ -262,8 +271,7 @@ public final class Jobs extends Job
         }
         
         TaskPool.putTask(this);
-        this.startTime          = new Date();
-        this.getMasterTime = null;
+        this.startTime = new Date();
     }
     
     
@@ -273,7 +281,8 @@ public final class Jobs extends Job
      */
     public synchronized void shutdown()
     {
-        this.startTime = null;
+        this.startTime     = null;
+        this.getMasterTime = null;
         this.finishTask();
     }
     
@@ -479,6 +488,23 @@ public final class Jobs extends Job
     
     
     
+    /**
+     * 判定Job是否被监控
+     * 
+     * @author      ZhengWei(HY)
+     * @createDate  2019-03-06
+     * @version     v1.0
+     *
+     * @param i_Job
+     * @return
+     */
+    public boolean isMonitor(Job i_Job)
+    {
+        return this.jobMonitor.containsKey(i_Job.getCode());
+    }
+    
+    
+    
     private boolean addMonitor(Job i_DBT)
     {
         return this.monitor(i_DBT ,1);
@@ -641,17 +667,15 @@ public final class Jobs extends Job
         if ( i_IsMaster && i_AllOK )
         {
             // 当所有服务均正常时，判定出的Master主服务，才是真正的主服务，这时才能移除主服务对其它Slave从服务的监测
-            if ( !this.isMaster )
+            if ( this.disasterRecoveryJobIsValid )
             {
-                for (int v_Index=this.jobList.size() - 1; v_Index>=0; v_Index--)
+                this.disasterRecoveryJobIsValid = false;
+                if ( this.disasterRecoveryJob != null )
                 {
-                    if ( $JOB_DisasterRecoverys_Check.equals(this.jobList.get(v_Index).getXJavaID()) )
-                    {
-                        this.jobList.remove(v_Index);
-                        break;
-                    }
+                    // 这里没有直接调用 delJob(this.disasterRecoveryJob) 的原因是：delJob 方法也是同步的。
+                    this.jobList.remove(this.disasterRecoveryJob);
+                    this.jobMonitor.remove(this.disasterRecoveryJob.getCode());
                 }
-            
                 System.out.println(Date.getNowTime().getFullMilli() + " 在所有服务的同意下，本服务接管定时任务的执行权限。");
             }
             this.getMasterCount = 0;

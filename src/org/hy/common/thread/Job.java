@@ -46,6 +46,7 @@ import com.greenpineyu.fel.context.MapContext;
  *                                     当然，云服务要开启通讯的，见 https://github.com/HY-Org/hy.common.net
  *              v8.0  2019-03-02  添加：按年份间隔的时间类型（都用到年周期执行的，哈哈）。
  *                                建议人：王力
+ *              v9.0  2019-03-06  添加：执行日志输出到控制台及二次预防重复执行的可能。
  */
 public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
 {
@@ -176,7 +177,7 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
     /** 执行次数 */
     private long           runCount;
     
-    /** 执行日志。记录最后32次内的执行时间 */
+    /** 执行日志。记录最后1440次内的执行时间 */
     private Busway<String> runLogs;
     
     
@@ -203,7 +204,7 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
         this.isAtOnceExecute = false;
         this.lastTime        = null;
         this.runCount        = 0;
-        this.runLogs         = new Busway<String>(32);
+        this.runLogs         = new Busway<String>(1440);
     }
     
     
@@ -261,25 +262,60 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
         
         try
         {
-            this.lastTime = new Date();
-            this.runCount++;
-            this.runLogs.put(this.lastTime.getFullMilli());
+            Date    v_Now     = new Date();
+            boolean v_IsAllow = false;
             
-            // 本机执行：默认的
-            if ( this.cloudSocket == null )
+            if ( this.lastTime == null )
             {
-                Object v_Object = XJava.getObject(this.xid.trim());
-                if ( v_Object == null )
+                v_IsAllow     = true;
+                this.lastTime = v_Now;
+            }
+            else if ( this.intervalType == Job.$IntervalType_Second 
+                   || this.intervalType == Job.$IntervalType_Manual
+                   || this.jobs         == null)
+            {
+                v_IsAllow     = true;
+                this.lastTime = v_Now;
+            }
+            // 第二个地方再次预防，第一个地方在Jobs.execute()中。
+            // 又添加一次预防的原因是：这里离 this.lastTime = new Date(); 最近。
+            // 预防因主机系统时间不精确，时间同步机制异常（如来回调整时间、时间跳跃、时间波动等），
+            // 造成定时任务重复执行的可能。  ZhengWei(HY) Add 2019-03-06
+            else if ( !this.getLastTime().equalsYMDHM(v_Now) && this.getLastTime().differ(v_Now) < 0 )
+            {
+                v_IsAllow     = true;
+                this.lastTime = v_Now;
+            }
+            // 手工执行时
+            else if ( this.jobs != null && !this.jobs.isMonitor(this) )
+            {
+                v_IsAllow     = true;
+                this.lastTime = v_Now;
+            }
+            
+            if ( v_IsAllow )
+            {
+                this.runCount++;
+                this.runLogs.put(this.lastTime.getFullMilli());
+                
+                // 本机执行：默认的
+                if ( this.cloudSocket == null )
                 {
-                    throw new NullPointerException("Job.getXid() = " + this.xid + " XJava.getObject(...) is null.");
+                    Object v_Object = XJava.getObject(this.xid.trim());
+                    if ( v_Object == null )
+                    {
+                        throw new NullPointerException("Job.getXid() = " + this.xid + " XJava.getObject(...) is null.");
+                    }
+                    
+                    (new Execute(v_Object ,this.methodName.trim())).start();
+                }
+                // 云服务执行：当配置CloudServer时。
+                else
+                {
+                    (new Execute(this.cloudSocket ,"sendCommand" ,new Object[]{this.xid ,this.methodName.trim() ,false})).start();
                 }
                 
-                (new Execute(v_Object ,this.methodName.trim())).start();
-            }
-            // 云服务执行：当配置CloudServer时。
-            else
-            {
-                (new Execute(this.cloudSocket ,"sendCommand" ,new Object[]{this.xid ,this.methodName.trim() ,false})).start();
+                System.out.print(Date.getNowTime().getFullMilli() + "  执行定时任务 " + this.xid + "：" + this.getTaskDesc());
             }
         }
         catch (Exception exce)
@@ -845,7 +881,7 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
 
     
     /**
-     * 获取：执行日志。记录最后32次内的执行时间
+     * 获取：执行日志。记录最后1440次内的执行时间
      */
     public Busway<String> getRunLogs()
     {
@@ -855,7 +891,7 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
 
     
     /**
-     * 设置：执行日志。记录最后32次内的执行时间
+     * 设置：执行日志。记录最后1440次内的执行时间
      * 
      * @param runLogs 
      */
