@@ -315,7 +315,7 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
                     (new Execute(this.cloudSocket ,"sendCommand" ,new Object[]{this.xid ,this.methodName.trim() ,false})).start();
                 }
                 
-                System.out.print(Date.getNowTime().getFullMilli() + "  执行定时任务 " + this.xid + "：" + this.getTaskDesc());
+                System.out.println(Date.getNowTime().getFullMilli() + " 执行定时任务 " + this.xid + "：" + this.getTaskDesc());
             }
         }
         catch (Exception exce)
