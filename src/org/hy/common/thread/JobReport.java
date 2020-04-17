@@ -18,6 +18,7 @@ import org.hy.common.xml.XJava;
  * @version     v1.0
  *              v2.0  2018-04-11  添加：执行次数的统计属性
  *              v3.0  2018-05-22  添加：执行历史日志
+ *              v4.0  2020-04-17  添加：云计算服务器的地址端口
  */
 public class JobReport extends SerializableDef
 {
@@ -25,28 +26,31 @@ public class JobReport extends SerializableDef
     private static final long serialVersionUID = 467967958670829923L;
 
     /** Job ID */
-    private String  jobID;
+    private String     jobID;
     
     /** 间隔类型 */
-    private String  intervalType;
+    private String     intervalType;
     
     /** 间隔长度 */
-    private String  intervalLen;
+    private String     intervalLen;
     
     /** 最后执行时间 */
-    private String  lastTime;
+    private String     lastTime;
     
     /** 计划执行时间 */
-    private String  nextTime;
+    private String     nextTime;
     
     /** 执行次数 */
-    private Long    runCount;
+    private Long       runCount;
     
     /** 执行日志。记录最后32次内的执行时间 */
     private Object []  runLogs;
     
+    /** 云计算服务器的地址端口。格式为：IP:Port */
+    private String     cloudServer;
+    
     /** 描述 */
-    private String  jobDesc;
+    private String     jobDesc;
     
     
     
@@ -55,6 +59,7 @@ public class JobReport extends SerializableDef
         this.jobID       = i_JobID;
         this.intervalLen = i_Job.getIntervalLen() + "";
         this.jobDesc     = i_Job.getTaskDesc();
+        this.cloudServer = i_Job.getCloudServer();
         this.runCount    = i_Job.getRunCount();
         this.runLogs     = i_Job.getRunLogs().getArray();
         
@@ -276,6 +281,26 @@ public class JobReport extends SerializableDef
     public void setJobDesc(String jobDesc)
     {
         this.jobDesc = jobDesc;
+    }
+
+
+    /**
+     * 获取：云计算服务器的地址端口。格式为：IP:Port
+     */
+    public String getCloudServer()
+    {
+        return cloudServer;
+    }
+
+    
+    /**
+     * 设置：云计算服务器的地址端口。格式为：IP:Port
+     * 
+     * @param cloudServer 
+     */
+    public void setCloudServer(String cloudServer)
+    {
+        this.cloudServer = cloudServer;
     }
     
 }

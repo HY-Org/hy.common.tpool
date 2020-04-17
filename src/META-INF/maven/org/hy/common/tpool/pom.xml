@@ -4,7 +4,7 @@
 
   <groupId>org</groupId>
   <artifactId>hy.common.tpool</artifactId>
-  <version>1.2.3</version>
+  <version>1.2.4</version>
   <packaging>jar</packaging>
 
   <name>hy.common.tpool</name>
@@ -35,7 +35,7 @@
 	<dependency>
 	    <groupId>org</groupId>
 	    <artifactId>hy.common.net</artifactId>
-	    <version>1.2.20</version>
+	    <version>1.2.21</version>
 	</dependency>
 	
 	<dependency>
