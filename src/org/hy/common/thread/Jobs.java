@@ -40,6 +40,8 @@ import org.hy.common.xml.plugins.analyse.Cluster;
  *                                         接管执行权限，确保定时任务的执行。
  *                                         
  *                                      4. 同时，新的Master主服务为了性能，也不再监控Slave从服务，再删除定时任务Job。
+ *                                      
+ *              v8.0  2020-08-12  添加：判定任务组是否运行中的标记。防止因重复开启Jobs运行造成的紊乱。发现人：张顺
  */
 public final class Jobs extends Job
 {
@@ -49,6 +51,9 @@ public final class Jobs extends Job
     
     /** 启动时间。即 startup() 方法的执行时间 */
     private Date                 startTime;
+    
+    /** 是否启动中。防止重复执行startup()方法 */
+    private boolean              isStarting;
     
     /**
      * 所有计划任务配置信息
@@ -241,6 +246,13 @@ public final class Jobs extends Job
      */
     public synchronized void startup()
     {
+        if ( this.isStarting )
+        {
+            System.out.println(Date.getNowTime().getFullMilli() + " 请误重复启动正在运行中的任务组Jobs。");
+            return;
+        }
+        
+        this.isStarting                 = true;
         this.isMaster                   = false;
         this.disasterRecoveryJobIsValid = false;
         this.getMasterTime              = null;
@@ -281,7 +293,8 @@ public final class Jobs extends Job
      */
     public synchronized void shutdown()
     {
-        this.startTime     = null;
+        this.isStarting    = false;
+       this.startTime     = null;
         this.getMasterTime = null;
         this.finishTask();
     }
@@ -585,6 +598,16 @@ public final class Jobs extends Job
     
     
     
+    /**
+     * 获取：是否启动中。防止重复执行startup()方法
+     */
+    public boolean isStarting()
+    {
+        return isStarting;
+    }
+
+
+
     /**
      * 是否启动的灾备机制
      * 

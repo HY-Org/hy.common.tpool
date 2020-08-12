@@ -47,6 +47,7 @@ import com.greenpineyu.fel.context.MapContext;
  *              v8.0  2019-03-02  添加：按年份间隔的时间类型（都用到年周期执行的，哈哈）。
  *                                建议人：王力
  *              v9.0  2019-03-06  添加：执行日志输出到控制台及二次预防重复执行的可能。
+ *              v10.0 2020-01-14  添加：条件表达式支持星期几的判定条件占位符
  */
 public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
 {
@@ -95,6 +96,9 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
     
     /** 是否允许执行的条件中的表达式中，预定义占位符有：年月日，格式为YYYYMMDD 样式的整数类型。整数类型是为了方便比较 */
     public  static final String    $Condition_YMD       = "YMD";
+    
+    /** 是否允许执行的条件中的表达式中，预定义占位符有：星期几，星期一为1，星期二为2...星期六为6，星期天为7 */
+    public  static final String    $Condition_Week      = "WEEK";
     
     /** 表达式引擎 */
     private static final FelEngine $FelEngine           = new FelEngineImpl();
@@ -941,6 +945,7 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
         this.condition = StringHelp.replaceAll(this.condition 
                                               ,new String[]{
                                                             ":" + $Condition_YMD
+                                                           ,":" + $Condition_Week
                                                            ,":" + $Condition_S
                                                            ,":" + $Condition_MI
                                                            ,":" + $Condition_H
@@ -950,6 +955,7 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
                                                            } 
                                               ,new String[]{
                                                             $Condition_YMD
+                                                           ,$Condition_Week
                                                            ,$Condition_S
                                                            ,$Condition_MI
                                                            ,$Condition_H
@@ -993,13 +999,14 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
         {
             FelContext v_FelContext = new MapContext();
             
-            v_FelContext.set($Condition_Y   ,i_Now.getYear());
-            v_FelContext.set($Condition_M   ,i_Now.getMonth());
-            v_FelContext.set($Condition_D   ,i_Now.getDay());
-            v_FelContext.set($Condition_H   ,i_Now.getHours());
-            v_FelContext.set($Condition_MI  ,i_Now.getMinutes());
-            v_FelContext.set($Condition_S   ,i_Now.getSeconds());
-            v_FelContext.set($Condition_YMD ,Integer.parseInt(i_Now.getYMD_ID()));
+            v_FelContext.set($Condition_Y    ,i_Now.getYear());
+            v_FelContext.set($Condition_M    ,i_Now.getMonth());
+            v_FelContext.set($Condition_D    ,i_Now.getDay());
+            v_FelContext.set($Condition_H    ,i_Now.getHours());
+            v_FelContext.set($Condition_MI   ,i_Now.getMinutes());
+            v_FelContext.set($Condition_S    ,i_Now.getSeconds());
+            v_FelContext.set($Condition_YMD  ,Integer.parseInt(i_Now.getYMD_ID()));
+            v_FelContext.set($Condition_Week ,i_Now.getWeek());
             
             return (Boolean) $FelEngine.eval(this.condition ,v_FelContext);
         }
