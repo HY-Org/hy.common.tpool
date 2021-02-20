@@ -184,6 +184,9 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
     /** 执行日志。记录最后1440次内的执行时间 */
     private Busway<String> runLogs;
     
+    /** 注释。可用于日志的输出等帮助性的信息 */
+    private String         comment;
+    
     
     
     private synchronized long GetSerialNo()
@@ -1014,6 +1017,30 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
         {
             throw new RuntimeException("Fel[" + this.condition + "] is error." + exce.getMessage());
         }
+    }
+    
+    
+    
+    /**
+     * 注释。可用于日志的输出等帮助性的信息
+     * 
+     * @param i_Comment
+     */
+    public void setComment(String i_Comment)
+    {
+        this.comment = i_Comment;
+    }
+    
+    
+    
+    /**
+     * 注释。可用于日志的输出等帮助性的信息
+     *
+     * @return
+     */
+    public String getComment()
+    {
+        return this.comment;
     }
 
 
