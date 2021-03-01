@@ -160,6 +160,7 @@ public class TaskGroup
         
         if ( Help.isNull(this.taskList) )
         {
+            this.tasksIsFinish = true;
             return;
         }
         

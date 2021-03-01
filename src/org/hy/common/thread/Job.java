@@ -484,7 +484,7 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
                     int v_AddCount = 0;
                     while ( i_Now.getTime() >= v_NextTime.getTime() )
                     {
-                        v_NextTime.setDate(v_NextTime.getNextMonth());
+                        v_NextTime.toDate(v_NextTime.getNextMonth());
                         v_AddCount++;
                     }
                     
@@ -500,7 +500,7 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
                     }
                     for (; i<this.intervalLen; i++)
                     {
-                        v_NextTime.setDate(v_NextTime.getNextMonth());
+                        v_NextTime.toDate(v_NextTime.getNextMonth());
                     }
                 }
             }
@@ -518,7 +518,7 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
                     int v_AddCount = 0;
                     while ( i_Now.getTime() >= v_NextTime.getTime() )
                     {
-                        v_NextTime.setDate(v_NextTime.getNextYear());
+                        v_NextTime.toDate(v_NextTime.getNextYear());
                         v_AddCount++;
                     }
                     
@@ -534,7 +534,7 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
                     }
                     for (; i<this.intervalLen; i++)
                     {
-                        v_NextTime.setDate(v_NextTime.getNextYear());
+                        v_NextTime.toDate(v_NextTime.getNextYear());
                     }
                 }
             }
