@@ -160,7 +160,7 @@ public class TaskGroup
         
         if ( Help.isNull(this.taskList) )
         {
-            this.tasksIsFinish = true;
+            this.taskFinish(null);
             return;
         }
         
@@ -190,25 +190,31 @@ public class TaskGroup
      * 
      * @param i_Task
      */
-    public synchronized void taskFinish(Task<?> i_Task)
+    public void taskFinish(Task<?> i_Task)
     {
-        // 任务组已标记完成，就不在接收每个任务的报告了。
-        if ( this.isTasksFinish() )
+        // 任务完成数量++，并判定任务组是否整体完成。
+        synchronized (this)
         {
-            return;
+            if ( this.tasksIsFinish )
+            {
+                // 任务组已标记完成，就不在接收每个任务的报告了。
+                return;
+            }
+            
+            this.finishSize++;
+            
+            if ( this.finishSize > 0 && this.finishSize >= this.taskList.size() && this.finishSize >= this.totalSize )
+            {
+                this.tasksIsFinish = true;
+            }
+            else
+            {
+                return;
+            }
         }
         
-        
-        int v_Size = this.taskList.size();
-        
-        this.plusFinishSize();
-        // System.out.println(i_Task.getTaskName() + "  " + i_Task.getThreadNo() + "  " + this.finishSize);
-        
-        
-        if ( this.finishSize > 0 && this.finishSize >= v_Size && this.finishSize >= this.totalSize )
+        if ( this.tasksIsFinish )
         {
-            this.tasksIsFinish = true;
-            
             if ( this.taskGroupEvent != null )
             {
                 this.taskGroupEvent.setCompleteSize(this.finishSize);
@@ -226,25 +232,7 @@ public class TaskGroup
             }
             
             this.taskGroupIsFinish = true;
-            this.totalSize         = 0L;
-            this.finishSize        = 0L;
         }
-    }
-    
-    
-    
-    /**
-     * 完成任务数++（加同步功能的）。
-     * 
-     * 因为加了synchronized关键字，但调用此方法的 taskFinish() 没有同步功能。
-     * 所以，当有多个任务同时完成时，即同时调用 taskFinish() 方法时，为并发的，
-     * 但，当遇到 plusFinishSize() 是就会出现堵塞，并发变成串行。
-     * 
-     * 这样就能保证并发任务时，只触发一次"任务组"整体完成事件。
-     */
-    private synchronized void plusFinishSize()
-    {
-        this.finishSize++;
     }
     
     
@@ -347,7 +335,7 @@ public class TaskGroup
      * 任务组中所有任务是否都完成了
      * 即，注册监听者都执行 finishAllTask(...) 方法之前，就返回true了。
      **/
-    public synchronized boolean isTasksFinish()
+    public boolean isTasksFinish()
     {
         return this.tasksIsFinish;
     }
