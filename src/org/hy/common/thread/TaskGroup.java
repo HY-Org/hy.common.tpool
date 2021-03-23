@@ -156,18 +156,31 @@ public class TaskGroup
      */
     public void stopTasksNoExecute()
     {
-        this.isAllStop = true;
-        
-        if ( Help.isNull(this.taskList) )
+        synchronized ( this )
         {
-            this.taskFinish(null);
+            if ( this.isAllStop )
+            {
+                return;
+            }
+            
+            this.isAllStop = true;
+        }
+        
+        Iterator<Task<?>> v_Iter = this.taskList.iterator();
+        if ( v_Iter == null )
+        {
             return;
         }
         
-        for (Task<?> v_Task : this.taskList)
+        while ( v_Iter.hasNext() )
         {
-            v_Task.stopTasksNoExecute();
-            this.taskFinish(v_Task);
+            Task<?> v_Task = v_Iter.next();
+            
+            if ( v_Task != null )
+            {
+                v_Task.stopTasksNoExecute();
+                v_Task.finishTask();
+            }
         }
     }
     
