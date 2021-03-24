@@ -28,6 +28,10 @@ import org.hy.common.thread.event.DefaultTaskGroupEvent;
  *           V3.0  2021-01-13  添加：组中累计的任务数量。防止动态向组内添加任务时，误判组全部完成的问题。
  *                             添加：组级停止状态。用于组内某一任务发起“停止”后，
  *                                   任务池中的其它任务及马上将要执行的任务均能不抛异常的停止。
+ *           V4.0  2021-03-24  添加：准备添加的任务数量。
+ *                                   在执行 addTaskAndStart() 方法的前，预前判定准备执行的任务总数。
+ *                                   来辅助预防高并发时，“添加任务”的动作慢于“任务执行”动作的情况，
+ *                                   造成任务组误判任务组整体完成的问题。
  */
 public class TaskGroup 
 {
@@ -41,6 +45,9 @@ public class TaskGroup
     
     /** 任务组中的任务列表 */
     private List<Task<?>>                        taskList;
+    
+    /** 准备添加的任务数量 */
+    private long                                 readyTotalSize;
     
     /** 组中累计的任务数量 */
     private long                                 totalSize;
@@ -101,6 +108,7 @@ public class TaskGroup
         
         this.taskGroupName     = i_TaskGroupName;
         this.taskList          = new ArrayList<Task<?>>();
+        this.readyTotalSize    = 0L;
         this.totalSize         = 0L;
         this.finishSize        = 0L;
         this.isAllStop         = false;
@@ -129,6 +137,7 @@ public class TaskGroup
         this.isAllStop         = false;
         this.taskGroupIsFinish = false;
         this.tasksIsFinish     = false;
+        this.readyTotalSize    = v_Size;
         this.totalSize         = v_Size;
         this.finishSize        = 0L;
         this.taskGroupEvent = new DefaultTaskGroupEvent(this);
@@ -148,6 +157,8 @@ public class TaskGroup
     
     /**
      * 停止尚未绑定线程开始执行的任务。对于已绑定线程执行的任务不生效。
+     * 
+     *      注意：此方法只是通知所有任务应当停止，并不是立刻将任务停止。
      * 
      * @author      ZhengWei(HY)
      * @createDate  2017-02-21
@@ -179,7 +190,7 @@ public class TaskGroup
             if ( v_Task != null )
             {
                 v_Task.stopTasksNoExecute();
-                v_Task.finishTask();
+                // v_Task.finishTask();       此处不要额外的帮助任务完成。应叫队列等待的任务自行判定后，自己停止并改成完成状态。
             }
         }
     }
@@ -216,7 +227,10 @@ public class TaskGroup
             
             this.finishSize++;
             
-            if ( this.finishSize > 0 && this.finishSize >= this.taskList.size() && this.finishSize >= this.totalSize )
+            if ( this.finishSize > 0 
+              && this.finishSize >= this.size() 
+              && this.finishSize >= this.totalSize 
+              && this.finishSize >= this.readyTotalSize )
             {
                 this.tasksIsFinish = true;
             }
@@ -290,6 +304,11 @@ public class TaskGroup
     
     /**
      * 添加任务，并执行任务
+     * 
+     * 注意：
+     *        在执行 addTaskAndStart() 方法的前，预前判定准备执行的任务总数（ addReadyTotalSize(...) ）。
+     *        来辅助预防高并发时，“添加任务”的动作慢于“任务执行”动作的情况，
+     *        造成任务组误判任务组整体完成的问题
      * 
      * @author      ZhengWei(HY)
      * @createDate  2017-02-22
@@ -519,6 +538,28 @@ public class TaskGroup
     public void setTaskGroupName(String taskGroupName) 
     {
         this.taskGroupName = taskGroupName;
+    }
+
+
+    
+    /**
+     * 获取：准备添加的任务数量
+     */
+    public long getReadyTotalSize()
+    {
+        return readyTotalSize;
+    }
+
+    
+    
+    /**
+     * 设置：准备添加的任务数量
+     * 
+     * @param readyTotalSize 
+     */
+    public synchronized void addReadyTotalSize(long readyTotalSize)
+    {
+        this.readyTotalSize = +readyTotalSize;
     }
     
 }
