@@ -149,7 +149,8 @@ public class TaskGroup
         
         for (int v_Index=0; v_Index<v_Size; v_Index++)
         {
-            TaskPool.putTask(this.taskList.get(v_Index));
+            Task<?> v_Task = this.taskList.get(v_Index);
+            TaskPool.putTask(v_Task);
         }
     }
     
@@ -296,6 +297,7 @@ public class TaskGroup
         }
         
         i_Task.setTaskGroup(this);
+        i_Task.ready();
         this.taskList.add(i_Task);
         this.totalSize++;
     }

@@ -122,8 +122,9 @@ public abstract class Task<O> implements Runnable
      */
     public final void run()
     {
-        if ( this.isStop )
+        if ( this.isStop || ( this.taskGroup != null && this.taskGroup.isAllStop()) )
         {
+            this.finishTask();
             return;
         }
         

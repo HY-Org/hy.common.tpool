@@ -282,6 +282,7 @@ public final class Jobs extends Job
             }
         }
         
+        this.ready();
         TaskPool.putTask(this);
         this.startTime = new Date();
     }
@@ -495,6 +496,7 @@ public final class Jobs extends Job
         i_Job.setMyJobs(this);
         if ( addMonitor(i_Job) )
         {
+            i_Job.ready();
             TaskPool.putTask(i_Job);
         }
     }
