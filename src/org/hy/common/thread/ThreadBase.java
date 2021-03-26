@@ -4,6 +4,7 @@ import org.hy.common.Date;
 import org.hy.common.StringHelp;
 import org.hy.common.thread.ui.ThreadPoolWatch;
 import org.hy.common.thread.ui.WatchTableColumnIndex;
+import org.hy.common.xml.log.Logger;
 
 
 
@@ -18,6 +19,8 @@ import org.hy.common.thread.ui.WatchTableColumnIndex;
  */
 public class ThreadBase
 {
+    private static final Logger $Logger = Logger.getLogger(ThreadBase.class ,true);
+    
     protected static long SERIALNO = 0;
     
     
@@ -181,7 +184,7 @@ public class ThreadBase
     }
 
 
-    public void setIntervalTime(long i_IntervalTime) 
+    public final void setIntervalTime(long i_IntervalTime) 
     {
         if ( i_IntervalTime > 0 )
         {
@@ -196,7 +199,7 @@ public class ThreadBase
     }
 
 
-    public void setIdleTimeKill(long idleTimeKill) 
+    public final void setIdleTimeKill(long idleTimeKill) 
     {
         if ( idleTimeKill > 0 )
         {
@@ -273,7 +276,7 @@ public class ThreadBase
     }
 
 
-    public void setTaskObject(Task<?> taskObject) 
+    public final void setTaskObject(Task<?> taskObject) 
     {
         this.taskObject = taskObject;
         
@@ -543,7 +546,7 @@ public class ThreadBase
                     }
                     catch (Throwable exce)
                     {
-                        exce.printStackTrace();
+                        $Logger.error(exce);
                     }
 
                     this.thread = null;
@@ -744,9 +747,9 @@ public class ThreadBase
                             }
                         }
                     }
-                    catch (Exception exce)
+                    catch (Throwable exce)
                     {
-                        exce.printStackTrace();
+                        $Logger.error(exce);
                     }
                     
                     ThreadPool.sleep(this.myThreadBase.getIntervalTime());
@@ -775,8 +778,8 @@ public class ThreadBase
                     }
                     catch (Exception exce)
                     {
-                        exce.printStackTrace();
                         this.myThreadBase.rest();
+                        $Logger.error(exce);
                     }
                 }
                 

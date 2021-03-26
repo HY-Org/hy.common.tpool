@@ -11,7 +11,9 @@ import org.hy.common.Help;
 import org.hy.common.net.ClientSocket;
 import org.hy.common.net.ClientSocketCluster;
 import org.hy.common.net.data.CommunicationResponse;
+import org.hy.common.xml.log.Logger;
 import org.hy.common.xml.plugins.analyse.Cluster;
+
 
 
 
@@ -46,6 +48,8 @@ import org.hy.common.xml.plugins.analyse.Cluster;
 public final class Jobs extends Job
 {
  
+    private static final Logger $Logger = Logger.getLogger(Jobs.class ,true);
+    
     /** 定时任务服务的灾备机制的心跳任务的XJavaID */
     public static final String  $JOB_DisasterRecoverys_Check = "JOB_DisasterRecoverys_Check";
     
@@ -198,7 +202,7 @@ public final class Jobs extends Job
                         v_Report.setMaster(true);
                         v_MasterReport = v_Report;
                     }
-                    else if ( v_MasterStartTime.differ(v_Report.getStartTime()) > 0 )
+                    else if ( v_MasterReport != null && v_Master != null && v_MasterStartTime.differ(v_Report.getStartTime()) > 0 )
                     {
                         v_Slaves.add(v_Master);
                         v_MasterStartTime = v_Report.getStartTime();
@@ -231,7 +235,7 @@ public final class Jobs extends Job
             v_Buffer.append(v_Master.getHostName());
             v_Buffer.append(":");
             v_Buffer.append(v_Master.getPort());
-            System.out.println(v_Buffer.toString());
+            $Logger.info(v_Buffer.toString());
             
             v_Master.sendCommand(this.getXJavaID() ,"setMaster" ,new Object[]{true ,v_Succeed==this.disasterRecoverys.size()});
         }
@@ -248,7 +252,7 @@ public final class Jobs extends Job
     {
         if ( this.isStarting )
         {
-            System.out.println(Date.getNowTime().getFullMilli() + " 请误重复启动正在运行中的任务组Jobs。");
+            $Logger.info("请误重复启动正在运行中的任务组Jobs。");
             return;
         }
         
@@ -413,9 +417,9 @@ public final class Jobs extends Job
                 }
             }
         }
-        catch (Exception exce)
+        catch (Throwable exce)
         {
-            exce.printStackTrace();
+            $Logger.error(exce);
         }
         
         
@@ -439,9 +443,9 @@ public final class Jobs extends Job
                         }
                     }
                 }
-                catch (Exception exce)
+                catch (Throwable exce)
                 {
-                    System.out.println(exce.getMessage());
+                    $Logger.error(exce);
                 }
             }
         }
@@ -476,9 +480,9 @@ public final class Jobs extends Job
                         }
                     }
                 }
-                catch (Exception exce)
+                catch (Throwable exce)
                 {
-                    System.out.println(exce.getMessage());
+                    $Logger.error(exce);
                 }
             }
         }
@@ -701,7 +705,7 @@ public final class Jobs extends Job
                     this.jobList.remove(this.disasterRecoveryJob);
                     this.jobMonitor.remove(this.disasterRecoveryJob.getCode());
                 }
-                System.out.println(Date.getNowTime().getFullMilli() + " 在所有服务的同意下，本服务接管定时任务的执行权限。");
+                $Logger.info("在所有服务的同意下，本服务接管定时任务的执行权限。");
             }
             this.getMasterCount = 0;
         }
@@ -710,11 +714,11 @@ public final class Jobs extends Job
             this.getMasterCount++;
             if ( this.getMasterCount < this.disasterCheckMax )
             {
-                System.out.println(Date.getNowTime().getFullMilli() + " 本服务第 " + this.getMasterCount +" 次准备接管定时任务的执行权限，共准备 " + this.disasterCheckMax + " 次。");
+                $Logger.info("本服务第 " + this.getMasterCount +" 次准备接管定时任务的执行权限，共准备 " + this.disasterCheckMax + " 次。");
                 return;
             }
             
-            System.out.println(Date.getNowTime().getFullMilli() + " 本服务在第 " + this.getMasterCount + " 次正式接管定时任务的执行权限。");
+            $Logger.info("本服务在第 " + this.getMasterCount + " 次正式接管定时任务的执行权限。");
             this.getMasterCount = 0;
         }
         else if ( !i_IsMaster )

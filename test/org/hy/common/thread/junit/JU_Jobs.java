@@ -7,6 +7,7 @@ import org.hy.common.xml.XJava;
 import org.hy.common.Date;
 import org.hy.common.thread.Job;
 import org.hy.common.xml.annotation.Xjava;
+import org.hy.common.xml.log.Logger;
 
 
 
@@ -21,6 +22,9 @@ import org.hy.common.xml.annotation.Xjava;
 @Xjava
 public class JU_Jobs
 {
+    private static final Logger $Logger = Logger.getLogger(JU_Jobs.class ,true);
+    
+    
     
     public static void main(String [] args) throws Exception
     {
@@ -70,7 +74,7 @@ public class JU_Jobs
     
     public void test_Job_Execute()
     {
-        System.out.println("Job Time: " + (new Date()).getFullMilli());
+        $Logger.info("Job Time: " + (new Date()).getFullMilli());
         ThreadPool.sleep(5 * 1000);
     }
     
@@ -78,7 +82,7 @@ public class JU_Jobs
     public void test_Job_Execute02()
     {
         ThreadPool.sleep(6 * 1000);
-        System.out.println();
+        $Logger.info(".");
     }
     
 }

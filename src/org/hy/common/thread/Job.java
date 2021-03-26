@@ -11,6 +11,7 @@ import org.hy.common.StringHelp;
 import org.hy.common.XJavaID;
 import org.hy.common.net.ClientSocket;
 import org.hy.common.xml.XJava;
+import org.hy.common.xml.log.Logger;
 
 import com.greenpineyu.fel.FelEngine;
 import com.greenpineyu.fel.FelEngineImpl;
@@ -51,6 +52,8 @@ import com.greenpineyu.fel.context.MapContext;
  */
 public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
 {
+    private static final Logger $Logger = Logger.getLogger(Jobs.class ,true);
+    
     /** 间隔类型: 秒 */
     public  static final int       $IntervalType_Second = -2;
     
@@ -322,12 +325,12 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
                     (new Execute(this.cloudSocket ,"sendCommand" ,new Object[]{this.xid ,this.methodName.trim() ,false})).start();
                 }
                 
-                System.out.println(Date.getNowTime().getFullMilli() + " 执行定时任务 " + this.xid + "：" + this.getTaskDesc());
+                $Logger.info("执行定时任务 " + this.xid + "：" + this.getTaskDesc());
             }
         }
         catch (Exception exce)
         {
-            exce.printStackTrace();
+            $Logger.error(exce);
         }
         
         if ( this.jobs != null )
