@@ -514,11 +514,11 @@ public class ThreadPool
     }
 
 
-    public static void setIdleTimeKill(int idleTimeKill) 
+    public static void setIdleTimeKill(int i_IdleTimeKill) 
     {
-        if ( idleTimeKill > 0 )
+        if ( i_IdleTimeKill > 0 )
         {
-            IdleTimeKill = idleTimeKill;
+            IdleTimeKill = i_IdleTimeKill;
         }
     }
 
@@ -529,11 +529,11 @@ public class ThreadPool
     }
 
 
-    public static void setIntervalTime(long intervalTime) 
+    public static void setIntervalTime(long i_IntervalTime) 
     {
-        if ( intervalTime > 0 )
+        if ( i_IntervalTime > 0 )
         {
-            IntervalTime = intervalTime;
+            IntervalTime = i_IntervalTime;
         }
     }
 
