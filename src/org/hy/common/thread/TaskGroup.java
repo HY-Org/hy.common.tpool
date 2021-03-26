@@ -404,9 +404,10 @@ public class TaskGroup
                 
                 // 2012-07-23 不能有此句，它会引发 this.taskFinish 的调用，造成异常 
                 // v_Task.finishTask();
-                
-                v_Task.clear();
-                v_Task = null;
+                if ( v_Task != null )
+                {
+                    v_Task.finalizeDatas();
+                }
             }
             catch (Throwable exce)
             {

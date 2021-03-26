@@ -464,7 +464,7 @@ public abstract class Task<O> implements Runnable
     
     
     
-    public void clear()
+    public void finalizeDatas()
     {
         this.printBuffer = null;
         this.sqlBuffer   = null;
@@ -482,7 +482,7 @@ public abstract class Task<O> implements Runnable
     {
         super.finalize();
         
-        this.clear();
+        this.finalizeDatas();
     }
         
 }
