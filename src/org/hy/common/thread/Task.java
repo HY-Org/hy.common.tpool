@@ -461,13 +461,11 @@ public abstract class Task<O> implements Runnable
             return 1;
         }
     }
-
-
     
-    protected void finalize() throws Throwable 
+    
+    
+    public void clear()
     {
-        super.finalize();
-        
         this.printBuffer = null;
         this.sqlBuffer   = null;
         
@@ -476,6 +474,15 @@ public abstract class Task<O> implements Runnable
         {
             finishTask();
         }
+    }
+
+
+    
+    protected void finalize() throws Throwable 
+    {
+        super.finalize();
+        
+        this.clear();
     }
         
 }

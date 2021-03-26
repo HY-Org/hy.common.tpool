@@ -100,15 +100,15 @@ public final class Jobs extends Job
     /** 
      * Slave从服务变成Master主服务前，Slave从服务每获得一次Master执行权限，此属性++。 
      * 
-     * 当 getMasterCount >= disasterCheckMax 时，Slave从服务才真正获得Master执行权限。
-     * 在此期间，原Master服务心跳再次成功时，getMasterCount将变成 0，准备开始重新计值。
+     * 当 masterCount >= disasterCheckMax 时，Slave从服务才真正获得Master执行权限。
+     * 在此期间，原Master服务心跳再次成功时，masterCount将变成 0，准备开始重新计值。
      * 
      * 预防某一次心跳检测的异常(如网络原因，原Master服务是正常的)，而造成多台Master服务并存的情况出现。
      */
-    private int                  getMasterCount;
+    private int                  masterCount;
     
     /** 得到Master执行权限的时间点。当为Slave时，此属性为NULL */
-    private Date                 getMasterTime;
+    private Date                 masterTime;
     
     
     
@@ -119,8 +119,8 @@ public final class Jobs extends Job
         this.setDesc("Jobs Total scheduling");
         
         this.disasterCheckMax = 3;
-        this.getMasterCount   = 0;
-        this.getMasterTime    = null;
+        this.masterCount      = 0;
+        this.masterTime       = null;
     }
     
     
@@ -259,8 +259,8 @@ public final class Jobs extends Job
         this.isStarting                 = true;
         this.isMaster                   = false;
         this.disasterRecoveryJobIsValid = false;
-        this.getMasterTime              = null;
-        this.getMasterCount             = 0;
+        this.masterTime                 = null;
+        this.masterCount                = 0;
         
         if ( this.isDisasterRecovery() )
         {
@@ -299,8 +299,8 @@ public final class Jobs extends Job
     public synchronized void shutdown()
     {
         this.isStarting    = false;
-       this.startTime     = null;
-        this.getMasterTime = null;
+        this.startTime     = null;
+        this.masterTime    = null;
         this.finishTask();
     }
     
@@ -707,36 +707,36 @@ public final class Jobs extends Job
                 }
                 $Logger.info("在所有服务的同意下，本服务接管定时任务的执行权限。");
             }
-            this.getMasterCount = 0;
+            this.masterCount = 0;
         }
         else if ( i_IsMaster && !this.isMaster )
         {
-            this.getMasterCount++;
-            if ( this.getMasterCount < this.disasterCheckMax )
+            this.masterCount++;
+            if ( this.masterCount < this.disasterCheckMax )
             {
-                $Logger.info("本服务第 " + this.getMasterCount +" 次准备接管定时任务的执行权限，共准备 " + this.disasterCheckMax + " 次。");
+                $Logger.info("本服务第 " + this.masterCount +" 次准备接管定时任务的执行权限，共准备 " + this.disasterCheckMax + " 次。");
                 return;
             }
             
-            $Logger.info("本服务在第 " + this.getMasterCount + " 次正式接管定时任务的执行权限。");
-            this.getMasterCount = 0;
+            $Logger.info("本服务在第 " + this.masterCount + " 次正式接管定时任务的执行权限。");
+            this.masterCount = 0;
         }
         else if ( !i_IsMaster )
         {
-            this.getMasterCount = 0; 
+            this.masterCount = 0; 
         }
         
         this.isMaster = i_IsMaster;
         if ( this.isMaster )
         {
-            if ( this.getMasterTime == null )
+            if ( this.masterTime == null )
             {
-                this.getMasterTime = new Date();
+                this.masterTime = new Date();
             }
         }
         else
         {
-            this.getMasterTime = null;
+            this.masterTime = null;
         }
     }
 
@@ -769,7 +769,7 @@ public final class Jobs extends Job
      */
     public Date getMasterTime()
     {
-        return getMasterTime;
+        return masterTime;
     }
     
     
@@ -789,7 +789,7 @@ public final class Jobs extends Job
         
         v_Report.setOK(        true);
         v_Report.setMaster(    this.isMaster);
-        v_Report.setMasterTime(this.getMasterTime);
+        v_Report.setMasterTime(this.masterTime);
         v_Report.setStartTime( this.startTime);
         
         return v_Report;

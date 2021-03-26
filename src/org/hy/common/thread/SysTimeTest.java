@@ -1,6 +1,7 @@
 package org.hy.common.thread;
 
 import org.hy.common.Date;
+import org.hy.common.xml.log.Logger;
 
 
 
@@ -15,6 +16,8 @@ import org.hy.common.Date;
  */
 public class SysTimeTest
 {
+    private static final Logger $Logger = Logger.getLogger(SysTimeTest.class ,true);
+    
     
     /**
      * 间隔1秒输出当前时间的测试
@@ -150,7 +153,7 @@ public class SysTimeTest
             Thread.sleep(i_Millisecond);
         }
         
-        System.out.println("System time test：Output every " + i_Millisecond + " millisecond.\n" + v_Buffer.toString());
+        $Logger.info("System time test：Output every " + i_Millisecond + " millisecond.\n" + v_Buffer.toString());
         return v_Buffer.toString();
     }
     

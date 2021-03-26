@@ -12,21 +12,21 @@ package org.hy.common.thread.event;
  */
 public interface TaskGroupListener 
 {
-	
-	/**
-	 * 启用任务组所有任务的事件
-	 * 
-	 * @param e
-	 */
-	public void startupAllTask(TaskGroupEvent e);
-	
-	
-	
-	/**
-	 * 任务组中任务都完成后的事件
-	 * 
-	 * @param e
-	 */
-	public void finishAllTask(TaskGroupEvent e);
-	
+    
+    /**
+     * 启用任务组所有任务的事件
+     * 
+     * @param e
+     */
+    public void startupAllTask(TaskGroupEvent e);
+    
+    
+    
+    /**
+     * 任务组中任务都完成后的事件
+     * 
+     * @param e
+     */
+    public void finishAllTask(TaskGroupEvent e);
+    
 }

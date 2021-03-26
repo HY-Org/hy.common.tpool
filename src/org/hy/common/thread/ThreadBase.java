@@ -174,7 +174,7 @@ public class ThreadBase
     
     public String getTotalTimeSec()
     {
-        return StringHelp.doubleParse(this.totalTime / 1000d, 2);
+        return StringHelp.doubleParse(this.totalTime / 1000D, 2);
     }
     
 
@@ -692,13 +692,17 @@ public class ThreadBase
 
     
     
-    public void finalize()
+    @Override
+    protected void finalize() throws Throwable
     {
+        super.finalize();
         this.shutdown();
     }
-    
-    
-    
+
+
+
+
+
     class CoreThread implements Runnable
     {
         private ThreadBase myThreadBase;

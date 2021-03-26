@@ -16,48 +16,48 @@ import org.hy.common.Date;
  */
 public class DefaultThreadPoolStopEvent extends ThreadPoolStopEvent 
 {
-	private static final long serialVersionUID = -6891141322700482966L;	
-	
-	
-	
-	public DefaultThreadPoolStopEvent(Object i_Source) 
-	{
-		super(i_Source);
-	}
-	
-	
-	
-	public DefaultThreadPoolStopEvent(Object i_Source ,long i_ThreadSize) 
-	{
-		super(i_Source ,i_ThreadSize);
-	}
+    private static final long serialVersionUID = -6891141322700482966L; 
+    
+    
+    
+    public DefaultThreadPoolStopEvent(Object i_Source) 
+    {
+        super(i_Source);
+    }
+    
+    
+    
+    public DefaultThreadPoolStopEvent(Object i_Source ,long i_ThreadSize) 
+    {
+        super(i_Source ,i_ThreadSize);
+    }
 
-	
-	
-	public void setBeginTime(Date i_BeginTime)
-	{
-		this.beginTime = i_BeginTime;
-	}
-	
-	
-	
-	public void setEndTime(Date i_EndTime) 
-	{
-		this.endTime = i_EndTime;
-	}
-	
-	
-	
-	public void setSize(long i_Size)
-	{
-		this.size = i_Size;
-	}
-	
-	
-	
-	public void setCompleteSize(long i_CompleteSize) 
-	{
-		this.completedSize = i_CompleteSize;
-	}
+    
+    
+    public void setBeginTime(Date i_BeginTime)
+    {
+        this.beginTime = i_BeginTime;
+    }
+    
+    
+    
+    public void setEndTime(Date i_EndTime) 
+    {
+        this.endTime = i_EndTime;
+    }
+    
+    
+    
+    public void setSize(long i_Size)
+    {
+        this.size = i_Size;
+    }
+    
+    
+    
+    public void setCompleteSize(long i_CompleteSize) 
+    {
+        this.completedSize = i_CompleteSize;
+    }
 
 }

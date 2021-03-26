@@ -20,29 +20,29 @@ import org.hy.common.BaseEvent;
  */
 public class TaskGroupEvent extends BaseEvent
 {
-	
-	private static final long serialVersionUID = -5418164359550922450L;
-	
-	/** 任务组中所有的任务 */
-	protected Iterator<Task<?>> iterator;
-	
-	
-	
-	public TaskGroupEvent(Object i_Source) 
-	{
-		super(i_Source);
-	}
-	
-	
-	
-	/**
-	 * 任务组中所有的任务
-	 * 
-	 * @return
-	 */
-	public Iterator<Task<?>> getTasks()
-	{
-		return this.iterator;
-	}
-	
+    
+    private static final long serialVersionUID = -5418164359550922450L;
+    
+    /** 任务组中所有的任务 */
+    protected Iterator<Task<?>> iterator;
+    
+    
+    
+    public TaskGroupEvent(Object i_Source) 
+    {
+        super(i_Source);
+    }
+    
+    
+    
+    /**
+     * 任务组中所有的任务
+     * 
+     * @return
+     */
+    public Iterator<Task<?>> getTasks()
+    {
+        return this.iterator;
+    }
+    
 }

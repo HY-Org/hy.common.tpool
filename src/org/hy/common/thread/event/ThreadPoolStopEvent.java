@@ -16,21 +16,21 @@ import org.hy.common.BaseEvent;
  */
 public class ThreadPoolStopEvent extends BaseEvent 
 {
-	
-	private static final long serialVersionUID = -8432874946980600911L;
-	
-	
-	
-	public ThreadPoolStopEvent(Object i_Source) 
-	{
-		super(i_Source);
-	}
-	
-	
-	
-	public ThreadPoolStopEvent(Object i_Source ,long i_Size)
-	{
-		super(i_Source ,i_Size);
-	}
-	
+    
+    private static final long serialVersionUID = -8432874946980600911L;
+    
+    
+    
+    public ThreadPoolStopEvent(Object i_Source) 
+    {
+        super(i_Source);
+    }
+    
+    
+    
+    public ThreadPoolStopEvent(Object i_Source ,long i_Size)
+    {
+        super(i_Source ,i_Size);
+    }
+    
 }

@@ -62,5 +62,12 @@ public class ThreadRunStatus extends ConstValue
     {
         return super.equals(o);
     }
+    
+    
+    @Override
+    public int hashCode()
+    {
+        return super.hashCode();
+    }
 
 }

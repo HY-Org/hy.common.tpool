@@ -10,7 +10,7 @@ import org.hy.common.Date;
 import org.hy.common.Help;
 import org.hy.common.thread.event.TaskGroupEvent;
 import org.hy.common.thread.event.TaskGroupListener;
-
+import org.hy.common.xml.log.Logger;
 import org.hy.common.thread.event.DefaultTaskGroupEvent;
 
 
@@ -35,6 +35,8 @@ import org.hy.common.thread.event.DefaultTaskGroupEvent;
  */
 public class TaskGroup 
 {
+    private static final Logger                  $Logger = Logger.getLogger(TaskGroup.class ,true); 
+    
     /** 最后一个创建的任务组 */
     private static TaskGroup                     $LastTaskGroup = null;
     
@@ -255,7 +257,7 @@ public class TaskGroup
                 }
                 catch (Exception exce)
                 {
-                    exce.printStackTrace();
+                    $Logger.error(exce);
                 }
             }
             
@@ -403,17 +405,12 @@ public class TaskGroup
                 // 2012-07-23 不能有此句，它会引发 this.taskFinish 的调用，造成异常 
                 // v_Task.finishTask();
                 
-                v_Task.finalize();
-                
+                v_Task.clear();
                 v_Task = null;
             }
-            catch (Exception exce)
+            catch (Throwable exce)
             {
-                exce.printStackTrace();
-            }
-            catch (Throwable t)
-            {
-                t.printStackTrace();
+                $Logger.error(exce);
             }
             finally
             {

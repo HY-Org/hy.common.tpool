@@ -20,51 +20,51 @@ import org.hy.common.Date;
  */
 public class DefaultTaskGroupEvent extends TaskGroupEvent 
 {
-	private static final long serialVersionUID = -6891141322700482967L;	
-	
-	
-	
-	public DefaultTaskGroupEvent(Object i_Source) 
-	{
-		super(i_Source);
-	}
-	
-	
-	
-	/**
-	 * 任务组中所有的任务
-	 */
-	public void setTasks(Iterator<Task<?>> i_Iterator)
-	{
-		this.iterator = i_Iterator;
-	}
-	
-	
-	
-	public void setBeginTime(Date i_BeginTime)
-	{
-		this.beginTime = i_BeginTime;
-	}
-	
-	
-	
-	public void setEndTime(Date i_EndTime) 
-	{
-		this.endTime = i_EndTime;
-	}
-	
-	
-	
-	public void setSize(long i_Size)
-	{
-		this.size = i_Size;
-	}
-	
-	
-	
-	public void setCompleteSize(long i_CompleteSize) 
-	{
-		this.completedSize = i_CompleteSize;
-	}
-	
+    private static final long serialVersionUID = -6891141322700482967L; 
+    
+    
+    
+    public DefaultTaskGroupEvent(Object i_Source) 
+    {
+        super(i_Source);
+    }
+    
+    
+    
+    /**
+     * 任务组中所有的任务
+     */
+    public void setTasks(Iterator<Task<?>> i_Iterator)
+    {
+        this.iterator = i_Iterator;
+    }
+    
+    
+    
+    public void setBeginTime(Date i_BeginTime)
+    {
+        this.beginTime = i_BeginTime;
+    }
+    
+    
+    
+    public void setEndTime(Date i_EndTime) 
+    {
+        this.endTime = i_EndTime;
+    }
+    
+    
+    
+    public void setSize(long i_Size)
+    {
+        this.size = i_Size;
+    }
+    
+    
+    
+    public void setCompleteSize(long i_CompleteSize) 
+    {
+        this.completedSize = i_CompleteSize;
+    }
+    
 }

@@ -15,52 +15,45 @@ import org.hy.common.thread.ThreadPool;
  */
 public class TestThreadTask extends Task<Object>
 {
-	private static long $SerialNo = 0;
-	
-	
-	
-	private synchronized long GetSerialNo()
-	{
-		return ++$SerialNo;
-	}
-	
-	
+    private static long $SerialNo = 0;
+    
+    
+    
+    private synchronized long GetSerialNo()
+    {
+        return ++$SerialNo;
+    }
+    
+    
 
-	public TestThreadTask() 
-	{
-		super("TestThreadTask");
-	}
+    public TestThreadTask() 
+    {
+        super("TestThreadTask");
+    }
 
-	
-	public void execute() 
-	{
-		ThreadPool.sleep(10000);
-		this.finishTask();
-	}
-	
-	
-	/**
-	 * 获取任务描述
-	 * 
-	 * @return
-	 */
-	public String getTaskDesc()
-	{
-		return "测试";
-	}
-	
-	
-	@Override
-	protected void finalize() throws Throwable 
-	{
-		super.finalize();
-	}
-
-
-	@Override
-	public long getSerialNo() 
-	{
-		return GetSerialNo();
-	}
+    
+    public void execute() 
+    {
+        ThreadPool.sleep(10000);
+        this.finishTask();
+    }
+    
+    
+    /**
+     * 获取任务描述
+     * 
+     * @return
+     */
+    public String getTaskDesc()
+    {
+        return "测试";
+    }
+    
+    
+    @Override
+    public long getSerialNo() 
+    {
+        return GetSerialNo();
+    }
 
 }
