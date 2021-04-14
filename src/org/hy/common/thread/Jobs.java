@@ -24,7 +24,7 @@ import org.hy.common.xml.plugins.analyse.Cluster;
  * 
  * @author      ZhengWei(HY)
  * @createDate  2013-12-16
- * @version     v1.0  
+ * @version     v1.0
  *              v2.0  2014-07-21：添加：融合XJava、任务池、线程池的功能
  *              v3.0  2015-11-03：添加：是否在初始时(即添加到Jobs时)，就执行一次任务
  *              v4.0  2016-07-08：添加：支持轮询间隔：秒
@@ -35,15 +35,17 @@ import org.hy.common.xml.plugins.analyse.Cluster;
  *              v7.0  2019-02-21  添加：定时任务的灾备机制。
  *                                      1. 建立定时任务服务的集群，并区分出集群的Master/Slave主从服务。
  *                                         只允许集群一台为Master主服务执行定时任务，其它Slave从服务作为备机并不执行定时任务。
- *                                      
+ * 
  *                                      2. 所有Slave从服务将定时监控Master主服务是否存活。Master主服务不反向监控Slave从服务。
- *                                      
+ * 
  *                                      3. 当Master主服务宕机后，从其它正常的Slave从服务中选出一台作为新的Master主服务。
  *                                         接管执行权限，确保定时任务的执行。
- *                                         
+ * 
  *                                      4. 同时，新的Master主服务为了性能，也不再监控Slave从服务，再删除定时任务Job。
- *                                      
+ * 
  *              v8.0  2020-08-12  添加：判定任务组是否运行中的标记。防止因重复开启Jobs运行造成的紊乱。发现人：张顺
+ *              v9.0  2021-04-14  优化：使用专门的（统一的）lastTime来预防时间波动的问题。
+ *                                     不再使用 v5.0 版本中，用Job.lastTime 判定的方法。
  */
 public final class Jobs extends Job
 {
@@ -52,6 +54,9 @@ public final class Jobs extends Job
     
     /** 定时任务服务的灾备机制的心跳任务的XJavaID */
     public static final String  $JOB_DisasterRecoverys_Check = "JOB_DisasterRecoverys_Check";
+    
+    /** 最后一次成功执行的时间。预防因主机系统时间不精确，时间同步机制异常（如来回调整时间、时间跳跃、时间波动等） */
+    private Date                 lastTime;
     
     /** 启动时间。即 startup() 方法的执行时间 */
     private Date                 startTime;
@@ -64,7 +69,7 @@ public final class Jobs extends Job
      */
     private List<Job>            jobList;
     
-    /** 
+    /**
      * 正在运行的任务池中的任务运行数量
      * 
      * Key: Job.getCode();
@@ -74,7 +79,7 @@ public final class Jobs extends Job
     /** 最小轮询间隔类型 */
     private int                  minIntervalType;
     
-    /** 
+    /**
      * 定时任务的灾备机制：灾备服务器。
      * 灾备服务包括自己在内的所有服务器 。
      * 
@@ -97,8 +102,8 @@ public final class Jobs extends Job
     /** 灾备检测的最大次数。当连续数次检测到原Master服务的异常时，再由Slave从服务接管Master执行权限。 */
     private int                  disasterCheckMax;
     
-    /** 
-     * Slave从服务变成Master主服务前，Slave从服务每获得一次Master执行权限，此属性++。 
+    /**
+     * Slave从服务变成Master主服务前，Slave从服务每获得一次Master执行权限，此属性++。
      * 
      * 当 masterCount >= disasterCheckMax 时，Slave从服务才真正获得Master执行权限。
      * 在此期间，原Master服务心跳再次成功时，masterCount将变成 0，准备开始重新计值。
@@ -327,7 +332,7 @@ public final class Jobs extends Job
         
         if ( Help.isNull(i_Job.getCode()) )
         {
-            throw new NullPointerException("Job.getCode() is null."); 
+            throw new NullPointerException("Job.getCode() is null.");
         }
         
         i_Job.setMyJobs(this);
@@ -358,7 +363,7 @@ public final class Jobs extends Job
         
         if ( Help.isNull(i_Job.getCode()) )
         {
-            throw new NullPointerException("Job.getCode() is null."); 
+            throw new NullPointerException("Job.getCode() is null.");
         }
         
         this.jobList.remove(i_Job);
@@ -393,6 +398,7 @@ public final class Jobs extends Job
     /**
      * 定时触发执行动作的方法
      */
+    @Override
     public void execute()
     {
         try
@@ -453,6 +459,26 @@ public final class Jobs extends Job
         {
             v_Now = v_Now.getFirstTimeOfMinute();
             
+            // 预防因主机系统时间不精确，时间同步机制异常（如来回调整时间、时间跳跃、时间波动等），
+            // 造成定时任务重复执行的可能。  ZhengWei(HY) Add 2018-05-22  优化于： 2021-04-14
+            if ( this.lastTime != null )
+            {
+                if ( !this.lastTime.equalsYMDHM(v_Now) && this.lastTime.differ(v_Now) < 0 )
+                {
+                    this.lastTime = v_Now;
+                }
+                else
+                {
+                    $Logger.warn("出现时间波动。上次执行时间是：" + this.lastTime.getFull() + "，当前时间是：" + v_Now.getFull());
+                    return;
+                }
+            }
+            else
+            {
+                this.lastTime = v_Now;
+            }
+            
+            
             while ( v_Iter.hasNext() )
             {
                 try
@@ -462,21 +488,9 @@ public final class Jobs extends Job
                     
                     if ( v_NextTime.equalsYMDHM(v_Now) )
                     {
-                        if ( v_Job.getLastTime() == null )
+                        if ( v_Job.isAllow(v_Now) )
                         {
-                            if ( v_Job.isAllow(v_Now) )
-                            {
-                                this.executeJob(v_Job);
-                            }
-                        }
-                        // 预防因主机系统时间不精确，时间同步机制异常（如来回调整时间、时间跳跃、时间波动等），
-                        // 造成定时任务重复执行的可能。  ZhengWei(HY) Add 2018-05-22
-                        else if ( !v_Job.getLastTime().equalsYMDHM(v_Now) && v_Job.getLastTime().differ(v_Now) < 0 )
-                        {
-                            if ( v_Job.isAllow(v_Now) )
-                            {
-                                this.executeJob(v_Job);
-                            }
+                            this.executeJob(v_Job);
                         }
                     }
                 }
@@ -547,7 +561,7 @@ public final class Jobs extends Job
      * 控件任务同时运行的线程数
      * 
      * @param i_Job
-     * @param i_Type  1:添加监控   -1:删除监控 
+     * @param i_Type  1:添加监控   -1:删除监控
      * @return
      */
     private boolean monitor(Job i_Job ,int i_Type)
@@ -666,7 +680,7 @@ public final class Jobs extends Job
      * 
      * 此属性为：可选项。集合元素个数大于等于2时，灾备机制才生效（其中包括本服务自己，所以只少是2台服务时才生效）。
      * 
-     * @param disasterRecoverys 
+     * @param disasterRecoverys
      */
     public void setDisasterRecoverys(List<ClientSocket> disasterRecoverys)
     {
@@ -723,7 +737,7 @@ public final class Jobs extends Job
         }
         else if ( !i_IsMaster )
         {
-            this.masterCount = 0; 
+            this.masterCount = 0;
         }
         
         this.isMaster = i_IsMaster;
@@ -755,7 +769,7 @@ public final class Jobs extends Job
     /**
      * 设置：灾备检测的最大次数。当连续数次检测到原Master服务的异常时，再由Slave从服务接管Master执行权限。
      * 
-     * @param disasterCheckMax 
+     * @param disasterCheckMax
      */
     public void setDisasterCheckMax(int disasterCheckMax)
     {
