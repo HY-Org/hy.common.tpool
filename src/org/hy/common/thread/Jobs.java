@@ -463,7 +463,8 @@ public final class Jobs extends Job
             // 造成定时任务重复执行的可能。  ZhengWei(HY) Add 2018-05-22  优化于： 2021-04-14
             if ( this.lastTime != null )
             {
-                if ( !this.lastTime.equalsYMDHM(v_Now) && this.lastTime.differ(v_Now) < 0 )
+                long v_Differ = this.lastTime.differ(v_Now);
+                if ( !this.lastTime.equalsYMDHM(v_Now) && v_Differ < 0L && v_Differ >= -2 * 60 * 1000L )
                 {
                     this.lastTime = v_Now;
                 }
