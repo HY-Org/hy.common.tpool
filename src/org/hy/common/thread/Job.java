@@ -27,7 +27,7 @@ import com.greenpineyu.fel.context.MapContext;
  * 
  * @author      ZhengWei(HY)
  * @createDate  2013-12-16
- * @version     v1.0  
+ * @version     v1.0
  *              v2.0  2014-07-21：融合XJava、任务池、线程池的功能
  *              v3.0  2015-11-03：是否在初始时(即添加到Jobs时)，就执行一次任务
  *              v4.0  2016-07-08：支持轮询间隔：秒
@@ -119,7 +119,7 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
     /** 任务配置名称 */
     private String         name;
     
-    /** 
+    /**
      * 运行的线程数
      * taskCount=1表示单例，否则时间点一到，无论上次执行的任务是否完成，都将运行一个新的任务。
      * 此属性要与this.code配合使用，this.code做为惟一标记
@@ -144,7 +144,10 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
     /** 最后一次的执行时间 */
     private Date           lastTime;
     
-    /** 
+    /** 强行执行。即不受时间波动的监管也要执行。哪怕是时间回退了，也要执行 */
+    private boolean        forceRun;
+    
+    /**
      * 允许执行的条件。
      * 
      *  表达式中，预定义占位符有（占位符不区分大小写）：
@@ -208,13 +211,14 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
         this.nextTime        = null;
         this.nextTimes       = null;
         this.intervalType    = $IntervalType_Manual;
-        this.intervalLen     = 1; 
+        this.intervalLen     = 1;
         this.taskCount       = 1;
         this.isInitExecute   = false;
         this.isAtOnceExecute = false;
         this.lastTime        = null;
         this.runCount        = 0;
         this.runLogs         = new Busway<String>(1440);
+        this.forceRun        = false;
     }
     
     
@@ -224,6 +228,7 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
      * 
      * @param i_XJavaID
      */
+    @Override
     public void setXJavaID(String i_XJavaID)
     {
         this.xjavaID = i_XJavaID;
@@ -236,6 +241,7 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
      * 
      * @return
      */
+    @Override
     public String getXJavaID()
     {
         return this.xjavaID;
@@ -248,6 +254,7 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
      * 
      * @return
      */
+    @Override
     public String getTaskDesc()
     {
         return Help.NVL(this.getDesc() ,Help.NVL(this.getName() ,this.getCode()));
@@ -258,6 +265,7 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
     /**
      * 执行任务的方法
      */
+    @Override
     public void execute()
     {
         if ( Help.isNull(this.xid) )
@@ -267,7 +275,7 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
         
         if ( Help.isNull(this.methodName) )
         {
-            throw new NullPointerException("Job.getMethodName() is null."); 
+            throw new NullPointerException("Job.getMethodName() is null.");
         }
         
         try
@@ -280,7 +288,7 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
                 v_IsAllow     = true;
                 this.lastTime = v_Now;
             }
-            else if ( this.intervalType == Job.$IntervalType_Second 
+            else if ( this.intervalType == Job.$IntervalType_Second
                    || this.intervalType == Job.$IntervalType_Manual
                    || this.jobs         == null)
             {
@@ -357,6 +365,7 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
      * 
      * @return
      */
+    @Override
     public long getSerialNo()
     {
         return GetSerialNo();
@@ -564,7 +573,7 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
     /**
      * 设置：任务编号
      * 
-     * @param code 
+     * @param code
      */
     public void setCode(String code)
     {
@@ -585,7 +594,7 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
     /**
      * 设置：间隔类型
      * 
-     * @param intervalType 
+     * @param intervalType
      */
     public void setIntervalType(int intervalType)
     {
@@ -636,7 +645,7 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
      * taskCount=1表示单例，否则时间点一到，无论上次执行的任务是否完成，都将运行一个新的任务。
      * 此属性要与this.code配合使用，this.code做为惟一标记
      * 
-     * @param taskCount 
+     * @param taskCount
      */
     public void setTaskCount(int taskCount)
     {
@@ -656,7 +665,7 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
     /**
      * 设置：任务配置名称
      * 
-     * @param name 
+     * @param name
      */
     public void setName(String name)
     {
@@ -678,7 +687,7 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
     /**
      * 设置：开始时间组。多个开始时间用分号分隔。多个开始时间对 "间隔类型:秒、分" 是无效的（只取最小时间为开始时间）
      * 
-     * @param startTimes 
+     * @param startTimes
      */
     public void setStartTimes(List<Date> startTimes)
     {
@@ -722,7 +731,7 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
     /**
      * 设置：描述
      * 
-     * @param xid 
+     * @param xid
      */
     public void setDesc(String i_Desc)
     {
@@ -744,7 +753,7 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
      * 
      * 默认端口是：1721
      * 
-     * @param i_CloudServer 
+     * @param i_CloudServer
      */
     public void setCloudServer(String i_CloudServer)
     {
@@ -774,7 +783,7 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
     /**
      * 设置：XJava对象标识
      * 
-     * @param xid 
+     * @param xid
      */
     public void setXid(String xid)
     {
@@ -794,7 +803,7 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
     /**
      * 设置：执行的方法名
      * 
-     * @param methodName 
+     * @param methodName
      */
     public void setMethodName(String methodName)
     {
@@ -821,7 +830,7 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
     /**
      * 设置：是否在初始时(即添加到Jobs时)，就执行一次任务（默认：不执行）
      * 
-     * @param isInitExecute 
+     * @param isInitExecute
      */
     public void setInitExecute(boolean isInitExecute)
     {
@@ -841,7 +850,7 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
     /**
      * 设置：当 isInitExecute = true 时，这个任务是串行立刻执行? 还是多线程池执行（默认：延时执行）
      * 
-     * @param isAtOnceExecute 
+     * @param isAtOnceExecute
      */
     public void setAtOnceExecute(boolean isAtOnceExecute)
     {
@@ -861,7 +870,7 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
     /**
      * 设置：最后一次的执行时间
      * 
-     * @param lastTime 
+     * @param lastTime
      */
     public void setLastTime(Date lastTime)
     {
@@ -883,7 +892,7 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
     /**
      * 设置：执行次数
      * 
-     * @param runCount 
+     * @param runCount
      */
     public void setRunCount(long runCount)
     {
@@ -905,7 +914,7 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
     /**
      * 设置：执行日志。记录最后1440次内的执行时间
      * 
-     * @param runLogs 
+     * @param runLogs
      */
     public void setRunLogs(Busway<String> runLogs)
     {
@@ -945,12 +954,12 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
      *    :S    表示秒
      *    :YMD  表示年月日，格式为YYYYMMDD 样式的整数类型。整数类型是为了方便比较
      * 
-     * @param i_Condition 
+     * @param i_Condition
      */
     public void setCondition(String i_Condition)
     {
         this.condition = Help.NVL(i_Condition).toUpperCase();
-        this.condition = StringHelp.replaceAll(this.condition 
+        this.condition = StringHelp.replaceAll(this.condition
                                               ,new String[]{
                                                             ":" + $Condition_YMD
                                                            ,":" + $Condition_Week
@@ -960,7 +969,7 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
                                                            ,":" + $Condition_D
                                                            ,":" + $Condition_D
                                                            ,":" + $Condition_Y
-                                                           } 
+                                                           }
                                               ,new String[]{
                                                             $Condition_YMD
                                                            ,$Condition_Week
@@ -1027,10 +1036,33 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
     
     
     /**
+     * 获取：强行执行。即不受时间波动的监管也要执行。哪怕是时间回退了，也要执行
+     */
+    public boolean isForceRun()
+    {
+        return forceRun;
+    }
+
+
+    
+    /**
+     * 设置：强行执行。即不受时间波动的监管也要执行。哪怕是时间回退了，也要执行
+     * 
+     * @param forceRun
+     */
+    public void setForceRun(boolean forceRun)
+    {
+        this.forceRun = forceRun;
+    }
+
+
+
+    /**
      * 注释。可用于日志的输出等帮助性的信息
      * 
      * @param i_Comment
      */
+    @Override
     public void setComment(String i_Comment)
     {
         this.comment = i_Comment;
@@ -1043,6 +1075,7 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
      *
      * @return
      */
+    @Override
     public String getComment()
     {
         return this.comment;
@@ -1050,6 +1083,7 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
 
 
 
+    @Override
     public int compareTo(Job i_Other)
     {
         if ( i_Other == null )
@@ -1072,6 +1106,7 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
     }
     
     
+    @Override
     public String toString()
     {
         if ( this.nextTime == null )

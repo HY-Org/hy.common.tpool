@@ -471,6 +471,17 @@ public final class Jobs extends Job
                 else
                 {
                     $Logger.warn("出现时间波动。上次执行时间是：" + this.lastTime.getFull() + "，当前时间是：" + v_Now.getFull());
+                    
+                    while ( v_Iter.hasNext() )
+                    {
+                        Job v_Job = v_Iter.next();
+                        
+                        if ( v_Job.isForceRun() )
+                        {
+                            this.executeJob(v_Job);
+                        }
+                    }
+                    
                     return;
                 }
             }
