@@ -464,7 +464,7 @@ public final class Jobs extends Job
             if ( this.lastTime != null )
             {
                 long v_Differ = this.lastTime.differ(v_Now);
-                if ( !this.lastTime.equalsYMDHM(v_Now) && v_Differ < 0L && v_Differ >= -2 * 60 * 1000L )
+                if ( !this.lastTime.equalsYMDHM(v_Now) && v_Differ < 0L )
                 {
                     this.lastTime = v_Now;
                 }
