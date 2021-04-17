@@ -478,6 +478,7 @@ public final class Jobs extends Job
                         
                         if ( v_Job.isForceRun() )
                         {
+                            $Logger.info("强行执行：" + Help.NVL(v_Job.getXJavaID() ,v_Job.getCode()) + " " + Help.NVL(v_Job.getName() ,v_Job.getComment()));
                             this.executeJob(v_Job);
                         }
                     }

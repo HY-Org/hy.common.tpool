@@ -310,6 +310,11 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
                 v_IsAllow     = true;
                 this.lastTime = v_Now;
             }
+            else if ( this.forceRun )
+            {
+                v_IsAllow     = true;
+                this.lastTime = v_Now;
+            }
             
             if ( v_IsAllow )
             {
