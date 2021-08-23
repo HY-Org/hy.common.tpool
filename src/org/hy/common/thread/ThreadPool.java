@@ -24,7 +24,7 @@ import org.hy.common.xml.log.Logger;
  *           V1.1  2018-08-23  修复：防止在队列中长时间等待的线程，在濒临死亡的一瞬间，被当作空闲线程使用
  *           V1.2  2018-08-24  添加：将杀死线程与获取空闲线程两的方法，合并为一个统一的方法，确保同步锁的功效。
  */
-public class ThreadPool 
+public class ThreadPool
 {
     private static final Logger        $Logger        = Logger.getLogger(ThreadPool.class ,true);
     
@@ -166,7 +166,7 @@ public class ThreadPool
         }
         else
         {
-            do 
+            do
             {
                 sleep(WaitResource);
                 
@@ -179,7 +179,7 @@ public class ThreadPool
                         return getNewThreadInstance(i_TaskObject ,i_IntervalTime ,i_IdleTimeKill);
                     }
                 }
-            } 
+            }
             while ( v_ThreadBase == null );
             
             if ( v_ThreadBase != null )
@@ -236,7 +236,7 @@ public class ThreadPool
      * @param i_ThreadBase
      * @return  返回 0 表示成功
      */
-    public static int killMySelf(ThreadBase i_ThreadBase) 
+    public static int killMySelf(ThreadBase i_ThreadBase)
     {
         return getIdleThread_Or_KillMySelf(i_ThreadBase ,null ,0 ,0).paramInt;
     }
@@ -248,13 +248,13 @@ public class ThreadPool
      * @param i_ThreadBase
      * @return  返回 0 表示成功
      */
-    private static int killMySelf_NoSync(ThreadBase i_ThreadBase) 
+    private static int killMySelf_NoSync(ThreadBase i_ThreadBase)
     {
         if ( ThreadPool.getIdleThreadCount() > ThreadPool.getMinIdleThread()
           && ThreadPool.getThreadCount()     > ThreadPool.getMinThread() )
         {
             try
-            {           
+            {
                 return killThread_NoSync(i_ThreadBase) ? 0 : -1;
             }
             catch (Exception exce)
@@ -273,7 +273,7 @@ public class ThreadPool
      * @param i_ThreadBase
      * @return  返回 0 表示成功
      */
-    public synchronized static boolean killThread(ThreadBase i_ThreadBase) 
+    public synchronized static boolean killThread(ThreadBase i_ThreadBase)
     {
         return killThread_NoSync(i_ThreadBase);
     }
@@ -285,7 +285,7 @@ public class ThreadPool
      * @param i_ThreadBase
      * @return  返回 0 表示成功
      */
-    private static boolean killThread_NoSync(ThreadBase i_ThreadBase) 
+    private static boolean killThread_NoSync(ThreadBase i_ThreadBase)
     {
         boolean v_Ret = false;
         
@@ -493,7 +493,7 @@ public class ThreadPool
     /**
      * 公用的，方便线程睡眠的方法
      * 
-     * @param i_Millis  
+     * @param i_Millis
      */
     public static void sleep(long i_Millis)
     {
@@ -508,13 +508,13 @@ public class ThreadPool
     }
     
     
-    public static long getIdleTimeKill() 
+    public static long getIdleTimeKill()
     {
         return IdleTimeKill;
     }
 
 
-    public static void setIdleTimeKill(int i_IdleTimeKill) 
+    public static void setIdleTimeKill(int i_IdleTimeKill)
     {
         if ( i_IdleTimeKill > 0 )
         {
@@ -523,13 +523,13 @@ public class ThreadPool
     }
 
 
-    public static long getIntervalTime() 
+    public static long getIntervalTime()
     {
         return IntervalTime;
     }
 
 
-    public static void setIntervalTime(long i_IntervalTime) 
+    public static void setIntervalTime(long i_IntervalTime)
     {
         if ( i_IntervalTime > 0 )
         {
@@ -547,7 +547,7 @@ public class ThreadPool
     }
     
     
-    public static void setMinIdleThread(int i_MinIdleThread) 
+    public static void setMinIdleThread(int i_MinIdleThread)
     {
         if ( i_MinIdleThread >= 0 )
         {
@@ -556,7 +556,7 @@ public class ThreadPool
     }
     
     
-    public static void setMinThread(int i_MinThread) 
+    public static void setMinThread(int i_MinThread)
     {
         if ( i_MinThread >= 0 )
         {
@@ -586,13 +586,13 @@ public class ThreadPool
     }
     
     
-    public static int getMinIdleThread() 
+    public static int getMinIdleThread()
     {
         return MINIDLETHREAD;
     }
 
 
-    public static int getMinThread() 
+    public static int getMinThread()
     {
         return MINTHREAD;
     }
@@ -617,13 +617,13 @@ public class ThreadPool
     
 
 
-    public static boolean isWatch() 
+    public static boolean isWatch()
     {
         return IsWatch;
     }
 
 
-    public static void setWatch(boolean isWatch) 
+    public static void setWatch(boolean isWatch)
     {
         IsWatch = isWatch;
         
@@ -641,7 +641,10 @@ public class ThreadPool
      */
     public static String showInfo()
     {
-        return "Total: " + getThreadCount() + "  Idle: " + getIdleThreadCount() + "  Active: " + getActiveThreadCount();
+        return "Total: "  + getThreadCount()
+           + "  Idle: "   + getIdleThreadCount()
+           + "  Active: " + getActiveThreadCount()
+           + "  Task: "   + TaskPool.size();
     }
     
     
