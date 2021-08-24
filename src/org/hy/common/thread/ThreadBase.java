@@ -263,11 +263,7 @@ public class ThreadBase
             if ( this.threadRunStatus.equals(ThreadRunStatus.$Finish) )
             {
                 String v_LastTime = " ";
-                if ( this.taskEndTime != null )
-                {
-                    v_LastTime = this.taskEndTime.getFullMilli();
-                }
-                else if ( this.taskStartTime != null )
+                if ( this.taskStartTime != null )
                 {
                     v_LastTime = this.taskStartTime.getFullMilli();
                 }
@@ -298,11 +294,7 @@ public class ThreadBase
                 this.taskObject.setThread(this);
                 
                 String v_LastTime = " ";
-                if ( this.taskEndTime != null )
-                {
-                    v_LastTime = this.taskEndTime.getFullMilli();
-                }
-                else if ( this.taskStartTime != null )
+                if ( this.taskStartTime != null )
                 {
                     v_LastTime = this.taskStartTime.getFullMilli();
                 }
@@ -337,11 +329,7 @@ public class ThreadBase
         if ( ThreadPool.isWatch() )
         {
             String v_LastTime = " ";
-            if ( this.taskEndTime != null )
-            {
-                v_LastTime = this.taskEndTime.getFullMilli();
-            }
-            else if ( this.taskStartTime != null )
+            if ( this.taskStartTime != null )
             {
                 v_LastTime = this.taskStartTime.getFullMilli();
             }
