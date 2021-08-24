@@ -35,6 +35,9 @@ public class WatchTableColumnIndex extends ConstValue
     /** 所有任务累计用时 */
     public final static WatchTableColumnIndex $TotalTime      = new WatchTableColumnIndex("TotalTime");
     
+    /** 最后执行时间 */
+    public final static WatchTableColumnIndex $LastTime       = new WatchTableColumnIndex("LastTime");
+    
     /** 任务描述 */
     public final static WatchTableColumnIndex $TaskDesc       = new WatchTableColumnIndex("TaskDesc");
     
@@ -59,7 +62,7 @@ public class WatchTableColumnIndex extends ConstValue
     
     
     @Override
-    public boolean equals(Object o) 
+    public boolean equals(Object o)
     {
         return super.equals(o);
     }

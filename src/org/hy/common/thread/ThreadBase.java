@@ -37,7 +37,7 @@ public class ThreadBase
     protected Task<?>                  taskObject;
     
     /** 前一个任务对象的任务类型 */
-    protected String                   oldTaskType;                   
+    protected String                   oldTaskType;
     
     /** 线程是否在运行 */
     protected boolean                  isRun      = false;
@@ -104,7 +104,7 @@ public class ThreadBase
      * @param i_IdleTimeKill  空闲多少时间后线程自毁(单位：秒) 默认为：60秒
      */
     public ThreadBase(Task<?> i_TaskObject ,long i_IntervalTime ,long i_IdleTimeKill)
-    {           
+    {
         this.setIdleTimeKill(i_IdleTimeKill);
         this.setIntervalTime(i_IntervalTime);
         
@@ -136,13 +136,13 @@ public class ThreadBase
     }
     
     
-    public Object getCache() 
+    public Object getCache()
     {
         return cache;
     }
 
 
-    public void setCache(Object cache) 
+    public void setCache(Object cache)
     {
         this.cache = cache;
     }
@@ -178,13 +178,13 @@ public class ThreadBase
     }
     
 
-    public long getIntervalTime() 
+    public long getIntervalTime()
     {
         return intervalTime;
     }
 
 
-    public final void setIntervalTime(long i_IntervalTime) 
+    public final void setIntervalTime(long i_IntervalTime)
     {
         if ( i_IntervalTime > 0 )
         {
@@ -193,13 +193,13 @@ public class ThreadBase
     }
     
 
-    public long getIdleTimeKill() 
+    public long getIdleTimeKill()
     {
         return idleTimeKill;
     }
 
 
-    public final void setIdleTimeKill(long idleTimeKill) 
+    public final void setIdleTimeKill(long idleTimeKill)
     {
         if ( idleTimeKill > 0 )
         {
@@ -214,7 +214,7 @@ public class ThreadBase
     }
 
 
-    public synchronized ThreadRunStatus getThreadRunStatus() 
+    public synchronized ThreadRunStatus getThreadRunStatus()
     {
         return threadRunStatus;
     }
@@ -262,21 +262,31 @@ public class ThreadBase
             
             if ( this.threadRunStatus.equals(ThreadRunStatus.$Finish) )
             {
+                String v_LastTime = " ";
+                if ( this.taskEndTime != null )
+                {
+                    v_LastTime = this.taskEndTime.getFullMilli();
+                }
+                else if ( this.taskStartTime != null )
+                {
+                    v_LastTime = this.taskStartTime.getFullMilli();
+                }
                 ThreadPoolWatch.getInstance().updateRow(this.watchTableRowIndex ,WatchTableColumnIndex.$ExecCount ,String.valueOf(this.executeTaskCount));
                 ThreadPoolWatch.getInstance().updateRow(this.watchTableRowIndex ,WatchTableColumnIndex.$TotalTime ,this.getTotalTimeSec());
-                ThreadPoolWatch.getInstance().updateRow(this.watchTableRowIndex ,WatchTableColumnIndex.$TaskDesc ,this.taskObject.getTaskDesc());
+                ThreadPoolWatch.getInstance().updateRow(this.watchTableRowIndex ,WatchTableColumnIndex.$LastTime  ,v_LastTime);
+                ThreadPoolWatch.getInstance().updateRow(this.watchTableRowIndex ,WatchTableColumnIndex.$TaskDesc  ,this.taskObject.getTaskDesc());
             }
         }
     }
 
     
-    public Task<?> getTaskObject() 
+    public Task<?> getTaskObject()
     {
         return taskObject;
     }
 
 
-    public final void setTaskObject(Task<?> taskObject) 
+    public final void setTaskObject(Task<?> taskObject)
     {
         this.taskObject = taskObject;
         
@@ -287,12 +297,24 @@ public class ThreadBase
             {
                 this.taskObject.setThread(this);
                 
+                String v_LastTime = " ";
+                if ( this.taskEndTime != null )
+                {
+                    v_LastTime = this.taskEndTime.getFullMilli();
+                }
+                else if ( this.taskStartTime != null )
+                {
+                    v_LastTime = this.taskStartTime.getFullMilli();
+                }
+                
                 ThreadPoolWatch.getInstance().updateRow(this.watchTableRowIndex ,WatchTableColumnIndex.$TaskName ,this.taskObject.getTaskName());
+                ThreadPoolWatch.getInstance().updateRow(this.watchTableRowIndex ,WatchTableColumnIndex.$LastTime ,v_LastTime);
                 ThreadPoolWatch.getInstance().updateRow(this.watchTableRowIndex ,WatchTableColumnIndex.$TaskDesc ,this.taskObject.getTaskDesc());
             }
             else
             {
                 ThreadPoolWatch.getInstance().updateRow(this.watchTableRowIndex ,WatchTableColumnIndex.$TaskName ," ");
+                ThreadPoolWatch.getInstance().updateRow(this.watchTableRowIndex ,WatchTableColumnIndex.$LastTime ," ");
                 ThreadPoolWatch.getInstance().updateRow(this.watchTableRowIndex ,WatchTableColumnIndex.$TaskDesc ," ");
             }
         }
@@ -314,28 +336,39 @@ public class ThreadBase
     {
         if ( ThreadPool.isWatch() )
         {
+            String v_LastTime = " ";
+            if ( this.taskEndTime != null )
+            {
+                v_LastTime = this.taskEndTime.getFullMilli();
+            }
+            else if ( this.taskStartTime != null )
+            {
+                v_LastTime = this.taskStartTime.getFullMilli();
+            }
+            
             ThreadPoolWatch.getInstance().updateRow(this.watchTableRowIndex ,WatchTableColumnIndex.$RunStatus ,this.threadRunStatus.toString());
             ThreadPoolWatch.getInstance().updateRow(this.watchTableRowIndex ,WatchTableColumnIndex.$ExecCount ,String.valueOf(this.executeTaskCount));
             ThreadPoolWatch.getInstance().updateRow(this.watchTableRowIndex ,WatchTableColumnIndex.$TotalTime ,this.getTotalTimeSec());
             ThreadPoolWatch.getInstance().updateRow(this.watchTableRowIndex ,WatchTableColumnIndex.$TaskName  ,this.taskObject.getTaskName());
+            ThreadPoolWatch.getInstance().updateRow(this.watchTableRowIndex ,WatchTableColumnIndex.$LastTime  ,v_LastTime);
             ThreadPoolWatch.getInstance().updateRow(this.watchTableRowIndex ,WatchTableColumnIndex.$TaskDesc  ,this.taskObject.getTaskDesc());
         }
     }
     
     
-    public boolean isRun() 
+    public boolean isRun()
     {
         return isRun;
     }
     
     
-    public boolean isPause() 
+    public boolean isPause()
     {
         return isPause;
     }
     
     
-    public boolean isHaveTask() 
+    public boolean isHaveTask()
     {
         return isHaveTask;
     }
@@ -382,7 +415,7 @@ public class ThreadBase
      * 
      * 指线程已运行，但具体任务还没有执行，需要调用 executeTask() 方法执行。
      * 
-     * @return 
+     * @return
      */
     public boolean startup()
     {
@@ -467,7 +500,7 @@ public class ThreadBase
      * 
      * 返回值表示：是否设置成功
      */
-    protected synchronized boolean changeStatus(ThreadControlStatus i_ThreadStatus) 
+    protected synchronized boolean changeStatus(ThreadControlStatus i_ThreadStatus)
     {
         boolean v_Ret = false;
         
@@ -527,7 +560,7 @@ public class ThreadBase
             
             
             if ( v_Ret )
-            {           
+            {
                 this.setThreadRunStatus_NoSync(ThreadRunStatus.$Kill);
                 
                 if ( this.taskObject != null )
@@ -643,11 +676,11 @@ public class ThreadBase
      * 
      * 不用加 synchronized 同步锁，因为调用执行本的方法已经是同步的，并且只有一处调用执行此方法
      */
-    private boolean setAllStatus(boolean i_Old_IsRun 
-                                ,boolean i_Old_IsPause 
+    private boolean setAllStatus(boolean i_Old_IsRun
+                                ,boolean i_Old_IsPause
                                 ,boolean i_Old_IsHaveTask
-                                ,boolean i_New_IsRun 
-                                ,boolean i_New_IsPause 
+                                ,boolean i_New_IsRun
+                                ,boolean i_New_IsPause
                                 ,boolean i_New_IsHaveTask)
     {
         if ( i_Old_IsRun == this.isRun )
@@ -717,6 +750,7 @@ public class ThreadBase
         }
         
         
+        @Override
         public void run()
         {
             this.idleBeginTime = 0;

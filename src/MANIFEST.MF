@@ -1,6 +1,6 @@
 Manifest-Version: 1.2.7
 Created-By: HY.ZhengWei@qq.com  2011
-Specification-Version: 1.2.7  2021-08-23
+Specification-Version: 1.2.7  2021-08-24
 SourceCode: https://github.com/HY-ZhengWei/hy.common.tpool
 SourceCodeChina: https://gitee.com/HY-ZhengWei/hy.common.tpool
 Build-JDK: 1.8

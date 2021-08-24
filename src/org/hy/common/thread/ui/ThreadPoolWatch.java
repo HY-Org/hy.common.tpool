@@ -1,12 +1,18 @@
 package org.hy.common.thread.ui;
 
+import java.awt.Color;
+import java.awt.Component;
+
 import javax.swing.JFrame;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ScrollPaneConstants;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 
+import org.hy.common.Date;
 import org.hy.common.thread.ThreadBase;
+import org.hy.common.thread.ThreadRunStatus;
 
 
 
@@ -70,7 +76,7 @@ public class ThreadPoolWatch extends JFrame
     public synchronized int addRow(ThreadBase i_ThreadBase)
     {
         int        v_Ret     = this.jtableMode.getRowCount();
-        String []  v_RowData = new String[6];
+        String []  v_RowData = new String[7];
         int        v_ColNo   = 0;
         
         
@@ -83,6 +89,7 @@ public class ThreadPoolWatch extends JFrame
             v_RowData[v_ColNo++] = i_ThreadBase.getThreadRunStatus().toString();
             v_RowData[v_ColNo++] = String.valueOf(i_ThreadBase.getExecuteTaskCount());
             v_RowData[v_ColNo++] = " ";
+            v_RowData[v_ColNo++] = " ";
         }
         else
         {
@@ -90,6 +97,7 @@ public class ThreadPoolWatch extends JFrame
             v_RowData[v_ColNo++] = "0";
             v_RowData[v_ColNo++] = i_ThreadBase.getThreadRunStatus().toString();
             v_RowData[v_ColNo++] = String.valueOf(i_ThreadBase.getExecuteTaskCount());
+            v_RowData[v_ColNo++] = Date.getNowTime().getFull();
             v_RowData[v_ColNo++] = i_ThreadBase.getTaskObject().getTaskDesc();
         }
         
@@ -147,9 +155,13 @@ public class ThreadPoolWatch extends JFrame
         {
             v_ColIndex = 4;
         }
-        else if ( WatchTableColumnIndex.$TaskDesc.equals(i_ColIndexObj) )
+        else if ( WatchTableColumnIndex.$LastTime.equals(i_ColIndexObj) )
         {
             v_ColIndex = 5;
+        }
+        else if ( WatchTableColumnIndex.$TaskDesc.equals(i_ColIndexObj) )
+        {
+            v_ColIndex = 6;
         }
         else
         {
@@ -189,6 +201,7 @@ public class ThreadPoolWatch extends JFrame
         this.jtableMode.addColumn("Total Time");         // 任务累计用时
         this.jtableMode.addColumn("Run Status");         // 线程运行状态
         this.jtableMode.addColumn("Exec Count");         // 已执行完成的任务次数
+        this.jtableMode.addColumn("Last Time");          // 最后执行时间
         this.jtableMode.addColumn("Task Desc");          // 任务描述
         
         
@@ -202,7 +215,10 @@ public class ThreadPoolWatch extends JFrame
         this.jtable.getColumnModel().getColumn(2).setPreferredWidth(100);
         this.jtable.getColumnModel().getColumn(3).setPreferredWidth(80);
         this.jtable.getColumnModel().getColumn(4).setPreferredWidth(80);
-        this.jtable.getColumnModel().getColumn(5).setPreferredWidth(800);
+        this.jtable.getColumnModel().getColumn(5).setPreferredWidth(80);
+        this.jtable.getColumnModel().getColumn(6).setPreferredWidth(700);
+        
+        this.jtable.getColumnModel().getColumn(3).setCellRenderer(new RowColorRenderer());
         
         
         
@@ -219,7 +235,51 @@ public class ThreadPoolWatch extends JFrame
     
     
     
-    public static void main(String argc[]) 
+    class RowColorRenderer extends DefaultTableCellRenderer
+    {
+        private static final long serialVersionUID = -7619548221666212371L;
+        
+        private Color workingColor;
+        
+        private Color restColor;
+        
+        
+        
+        public RowColorRenderer()
+        {
+            this.workingColor = new Color(255 ,99  ,71);
+            this.restColor    = new Color(60  ,179 ,113);
+        }
+        
+        
+
+        @Override
+        public Component getTableCellRendererComponent(JTable i_JTable ,Object i_Value ,boolean isSelected, boolean hasFocus, int row, int column)
+        {
+            if ( i_Value == null )
+            {
+                setBackground(Color.WHITE);
+            }
+            else if ( ThreadRunStatus.$Rest.toString().equals(i_Value.toString()) )
+            {
+                setBackground(restColor);
+            }
+            else if ( ThreadRunStatus.$Working.toString().equals(i_Value.toString()) )
+            {
+                setBackground(workingColor);
+            }
+            else
+            {
+                setBackground(Color.WHITE);
+            }
+     
+            return super.getTableCellRendererComponent(i_JTable, i_Value, isSelected, hasFocus, row, column);
+        }
+    }
+    
+    
+    
+    public static void main(String argc[])
     {
         ThreadPoolWatch v_WatchFrame = new ThreadPoolWatch();
         
