@@ -198,7 +198,7 @@ public class ThreadPoolWatch extends JFrame
         this.jtableMode = new DefaultTableModel();
         this.jtableMode.addColumn("Thread No");          // 线程编号
         this.jtableMode.addColumn("Task No");            // 任务编号
-        this.jtableMode.addColumn("Total Time");         // 任务累计用时
+        this.jtableMode.addColumn("Total Time(Sec)");    // 任务累计用时
         this.jtableMode.addColumn("Run Status");         // 线程运行状态
         this.jtableMode.addColumn("Exec Count");         // 已执行完成的任务次数
         this.jtableMode.addColumn("Last Time");          // 最后执行时间
