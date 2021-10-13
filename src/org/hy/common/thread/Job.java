@@ -195,7 +195,12 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
     
     
     
-    private synchronized long GetSerialNo()
+    /**
+     * 注意：本方法可能在多个实例、多个线程中执行，所以要用 static synchronized
+     * 
+     * @return
+     */
+    private static synchronized long GetSerialNo()
     {
         return ++$SerialNo;
     }

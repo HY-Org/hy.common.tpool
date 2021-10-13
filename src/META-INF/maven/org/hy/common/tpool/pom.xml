@@ -4,11 +4,12 @@
 
   <groupId>org</groupId>
   <artifactId>hy.common.tpool</artifactId>
-  <version>1.2.7</version>
+  <version>1.2.8</version>
   <packaging>jar</packaging>
 
   <name>hy.common.tpool</name>
   <url>https://github.com/HY-ZhengWei/hy.common.tpool</url>
+  <!-- https://gitee.com/HY-ZhengWei/hy.common.tpool -->
   
   <developers>
     <developer>
@@ -32,10 +33,11 @@
     </dependency>
     
     <!-- https://github.com/HY-ZhengWei/hy.common.net -->
+    <!-- https://gitee.com/HY-ZhengWei/hy.common.net -->
     <dependency>
         <groupId>org</groupId>
         <artifactId>hy.common.net</artifactId>
-        <version>1.2.23</version>
+        <version>3.0.0</version>
     </dependency>
     
     <dependency>

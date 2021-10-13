@@ -116,7 +116,12 @@ public abstract class Cache<C ,O>
     
     
     
-    private synchronized int GetSerialNo()
+    /**
+     * 注意：本方法可能在多个实例、多个线程中执行，所以要用 static synchronized
+     * 
+     * @return
+     */
+    private static synchronized int GetSerialNo()
     {
         return ++$SerialNo;
     }
@@ -219,25 +224,25 @@ public abstract class Cache<C ,O>
     }
     
         
-    public int getCacheInitSize() 
+    public int getCacheInitSize()
     {
         return cacheInitSize;
     }
     
     
-    public void setCacheInitSize(int cacheInitSize) 
+    public void setCacheInitSize(int cacheInitSize)
     {
         this.cacheInitSize = cacheInitSize;
     }
     
     
-    public int getCacheNextSize() 
+    public int getCacheNextSize()
     {
         return cacheNextSize;
     }
     
     
-    public void setCacheNextSize(int cacheNextSize) 
+    public void setCacheNextSize(int cacheNextSize)
     {
         this.cacheNextSize = cacheNextSize;
     }
@@ -249,7 +254,7 @@ public abstract class Cache<C ,O>
     它会在元素还有用，但集合对象本身没有用时，释放元素对象
     
     一些与finalize相关的方法，由于一些致命的缺陷，已经被废弃了
-    protected void finalize() throws Throwable 
+    protected void finalize() throws Throwable
     {
         for (int i=0; i<this.cacheTaskList.size(); i++)
         {
@@ -290,7 +295,7 @@ public abstract class Cache<C ,O>
         
         
         
-        public CacheTask(Cache<C2 ,O2> i_Cache) 
+        public CacheTask(Cache<C2 ,O2> i_Cache)
         {
             super($TaskType$);
             
@@ -301,7 +306,7 @@ public abstract class Cache<C ,O>
         
         
         @Override
-        public String getTaskDesc() 
+        public String getTaskDesc()
         {
             return "CacheSize: "      + this.cacheObject.size()         + "    "
                  + "UsedSize: "       + this.cacheObject.getUsedCount() + "    "
@@ -321,20 +326,21 @@ public abstract class Cache<C ,O>
         }
         
         
-        public boolean isNextCache() 
+        public boolean isNextCache()
         {
             return isNextCache;
         }
 
 
-        public void nextCache(int i_Size) 
+        public void nextCache(int i_Size)
         {
             this.isNextCache = true;
             this.nextSize    = i_Size;
         }
         
         
-        public void execute() 
+        @Override
+        public void execute()
         {
             if ( this.isNextCache )
             {
@@ -372,7 +378,7 @@ public abstract class Cache<C ,O>
 
 
         @Override
-        public long getSerialNo() 
+        public long getSerialNo()
         {
             return GetSerialNo();
         }

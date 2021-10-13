@@ -9,6 +9,6 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/hy.common.file"/>
 	<classpathentry kind="lib" path="lib/junit-4.13.1.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="lib/hy.common.xjava.jar" sourcepath="C:/Users/ZhengWei/.m2/org/hy.common.xjava/4.1.1/hy.common.xjava-4.1.1-sources.jar"/>
+	<classpathentry kind="lib" path="lib/hy.common.xjava.jar" sourcepath="/hy.common.xjava"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

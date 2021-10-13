@@ -8,8 +8,8 @@ import java.util.Map;
 import org.hy.common.Counter;
 import org.hy.common.Date;
 import org.hy.common.Help;
-import org.hy.common.net.ClientSocket;
 import org.hy.common.net.ClientSocketCluster;
+import org.hy.common.net.common.ClientCluster;
 import org.hy.common.net.data.CommunicationResponse;
 import org.hy.common.xml.log.Logger;
 import org.hy.common.xml.plugins.analyse.Cluster;
@@ -88,7 +88,7 @@ public final class Jobs extends Job
      * 
      * 此属性为：可选项。集合元素个数大于等于2时，灾备机制才生效（其中包括本服务自己，所以只少是2台服务时才生效）。
      */
-    private List<ClientSocket>   disasterRecoverys;
+    private List<ClientCluster>  disasterRecoverys;
     
     /** 是否为Master主服务 */
     private boolean              isMaster;
@@ -170,21 +170,21 @@ public final class Jobs extends Job
      */
     public List<JobDisasterRecoveryReport> disasterRecoveryChecks()
     {
-        Map<ClientSocket ,CommunicationResponse> v_ResponseDatas   = ClientSocketCluster.sendCommands(this.disasterRecoverys ,Cluster.getClusterTimeout() ,this.getXJavaID() ,"getDisasterRecoveryReport" ,true ,"定时任务服务的灾备心跳");
-        Date                                     v_MasterStartTime = null;
-        ClientSocket                             v_Master          = null;
-        List<ClientSocket>                       v_Slaves          = new ArrayList<ClientSocket>();
-        int                                      v_Succeed         = 0;
-        List<JobDisasterRecoveryReport>          v_Reports         = new ArrayList<JobDisasterRecoveryReport>();
-        JobDisasterRecoveryReport                v_MasterReport    = null;
+        Map<ClientCluster ,CommunicationResponse> v_ResponseDatas   = ClientSocketCluster.sendCommands(this.disasterRecoverys ,Cluster.getClusterTimeout() ,this.getXJavaID() ,"getDisasterRecoveryReport" ,true ,"定时任务服务的灾备心跳");
+        Date                                      v_MasterStartTime = null;
+        ClientCluster                             v_Master          = null;
+        List<ClientCluster>                       v_Slaves          = new ArrayList<ClientCluster>();
+        int                                       v_Succeed         = 0;
+        List<JobDisasterRecoveryReport>           v_Reports         = new ArrayList<JobDisasterRecoveryReport>();
+        JobDisasterRecoveryReport                 v_MasterReport    = null;
         
         
-        for (Map.Entry<ClientSocket ,CommunicationResponse> v_Item : v_ResponseDatas.entrySet())
+        for (Map.Entry<ClientCluster ,CommunicationResponse> v_Item : v_ResponseDatas.entrySet())
         {
             CommunicationResponse     v_ResponseData = v_Item.getValue();
             JobDisasterRecoveryReport v_Report       = new JobDisasterRecoveryReport();
             
-            v_Report.setHostName(v_Item.getKey().getHostName());
+            v_Report.setHostName(v_Item.getKey().getHost());
             v_Report.setPort(    v_Item.getKey().getPort());
             v_Report.setOK(      false);
             
@@ -237,12 +237,12 @@ public final class Jobs extends Job
             StringBuilder v_Buffer = new StringBuilder();
             v_Buffer.append(Date.getNowTime().getFullMilli());
             v_Buffer.append(" 定时任务服务的灾备机制的Master：");
-            v_Buffer.append(v_Master.getHostName());
+            v_Buffer.append(v_Master.getHost());
             v_Buffer.append(":");
             v_Buffer.append(v_Master.getPort());
             $Logger.info(v_Buffer.toString());
             
-            v_Master.sendCommand(this.getXJavaID() ,"setMaster" ,new Object[]{true ,v_Succeed==this.disasterRecoverys.size()});
+            v_Master.operation().sendCommand(this.getXJavaID() ,"setMaster" ,new Object[]{true ,v_Succeed==this.disasterRecoverys.size()});
         }
         
         return v_Reports;
@@ -677,7 +677,7 @@ public final class Jobs extends Job
      * 
      * 此属性为：可选项。集合元素个数大于等于2时，灾备机制才生效（其中包括本服务自己，所以只少是2台服务时才生效）。
      */
-    public List<ClientSocket> getDisasterRecoverys()
+    public List<ClientCluster> getDisasterRecoverys()
     {
         return disasterRecoverys;
     }
@@ -695,7 +695,7 @@ public final class Jobs extends Job
      * 
      * @param disasterRecoverys
      */
-    public void setDisasterRecoverys(List<ClientSocket> disasterRecoverys)
+    public void setDisasterRecoverys(List<ClientCluster> disasterRecoverys)
     {
         this.disasterRecoverys = disasterRecoverys;
     }
