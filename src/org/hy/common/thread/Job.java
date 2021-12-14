@@ -10,6 +10,9 @@ import org.hy.common.Help;
 import org.hy.common.StringHelp;
 import org.hy.common.XJavaID;
 import org.hy.common.net.ClientSocket;
+import org.hy.common.net.common.ClientCluster;
+import org.hy.common.net.data.LoginRequest;
+import org.hy.common.net.netty.rpc.ClientRPC;
 import org.hy.common.xml.XJava;
 import org.hy.common.xml.log.Logger;
 
@@ -49,6 +52,7 @@ import com.greenpineyu.fel.context.MapContext;
  *                                建议人：王力
  *              v9.0  2019-03-06  添加：执行日志输出到控制台及二次预防重复执行的可能。
  *              v10.0 2020-01-14  添加：条件表达式支持星期几的判定条件占位符
+ *              v11.0 2021-12-14  优化：使用Net 3.0.0版本
  */
 public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
 {
@@ -164,8 +168,17 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
     /** 云计算服务器的地址端口。格式为：IP:Port */
     private String         cloudServer;
     
+    /**
+     * 云计算服务器的通讯版本
+     *   Socket：表示2021-12-13之前，采用原生Socket实现的通讯技术
+     *   RPC：   表示2021-12-13之后，采用Netty实现的通讯技术
+     * 
+     * 默认值：RPC。
+     */
+    private String         cloudVersion;
+    
     /** 云计算服务器的对象 */
-    private ClientSocket   cloudSocket;
+    private ClientCluster  clientCluster;
     
     /** XJava对象标识 */
     private String         xid;
@@ -224,6 +237,7 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
         this.runCount        = 0;
         this.runLogs         = new Busway<String>(1440);
         this.forceRun        = false;
+        this.cloudServer     = "RPC";
     }
     
     
@@ -327,7 +341,7 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
                 this.runLogs.put(this.lastTime.getFullMilli());
                 
                 // 本机执行：默认的
-                if ( this.cloudSocket == null )
+                if ( this.clientCluster == null )
                 {
                     Object v_Object = XJava.getObject(this.xid.trim());
                     if ( v_Object == null )
@@ -340,7 +354,17 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
                 // 云服务执行：当配置CloudServer时。
                 else
                 {
-                    (new Execute(this.cloudSocket ,"sendCommand" ,new Object[]{this.xid ,this.methodName.trim() ,false})).start();
+                    if ( !this.clientCluster.operation().isStartServer() )
+                    {
+                        this.clientCluster.operation().startServer();
+                    }
+                    
+                    if ( !this.clientCluster.operation().isLogin() )
+                    {
+                        this.clientCluster.operation().login(new LoginRequest("Job" ,"").setSystemName("JobCloud"));
+                    }
+                    
+                    (new Execute(this.clientCluster.operation() ,"sendCommand" ,new Object[]{this.xid ,this.methodName.trim() ,false})).start();
                 }
                 
                 $Logger.info("执行定时任务 " + this.xid + "：" + this.getTaskDesc());
@@ -769,7 +793,7 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
     {
         if ( Help.isNull(i_CloudServer) )
         {
-            this.cloudSocket = null;
+            this.clientCluster = null;
             this.cloudServer = null;
             return;
         }
@@ -777,7 +801,19 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
         this.cloudServer = StringHelp.replaceAll(i_CloudServer ,new String[]{"，" ," " ,"\t" ,"\r" ,"\n"} ,new String[]{"," ,""});
         
         String [] v_HostPort = (this.cloudServer.trim() + ":1721").split(":");
-        this.cloudSocket = new ClientSocket(v_HostPort[0] ,Integer.parseInt(v_HostPort[1]));
+        
+        if ( Help.isNull(this.cloudVersion) || "RPC".equalsIgnoreCase(this.cloudVersion.trim()) )
+        {
+            this.clientCluster = new ClientRPC().setHost(v_HostPort[0]).setPort(Integer.parseInt(v_HostPort[1]));
+        }
+        else if ( "Socket".equalsIgnoreCase(this.cloudVersion) )
+        {
+            this.clientCluster = new ClientSocket(v_HostPort[0] ,Integer.parseInt(v_HostPort[1]));
+        }
+        else
+        {
+            throw new java.lang.VerifyError("CloudVersion[" + this.cloudVersion + "] is not valid.");
+        }
     }
 
 
@@ -1089,6 +1125,49 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
     public String getComment()
     {
         return this.comment;
+    }
+
+
+    
+    /**
+     * 云计算服务器的通讯版本
+     *   Socket：表示2021-12-13之前，采用原生Socket实现的通讯技术
+     *   RPC：   表示2021-12-13之后，采用Netty实现的通讯技术
+     * 
+     * 默认值：RPC。
+     *
+     * @return
+     */
+    public String getCloudVersion()
+    {
+        return cloudVersion;
+    }
+
+    
+
+    /**
+     * 云计算服务器的通讯版本
+     *   Socket：表示2021-12-13之前，采用原生Socket实现的通讯技术
+     *   RPC：   表示2021-12-13之后，采用Netty实现的通讯技术
+     * 
+     * 默认值：RPC。
+     *
+     * @return
+     */
+    public void setCloudVersion(String i_CloudVersion)
+    {
+        if ( Help.isNull(i_CloudVersion) || "RPC".equalsIgnoreCase(i_CloudVersion.trim()) )
+        {
+            this.cloudVersion = "RPC";
+        }
+        else if ( "Socket".equalsIgnoreCase(i_CloudVersion) )
+        {
+            this.cloudVersion = "Socket";
+        }
+        else
+        {
+            throw new java.lang.VerifyError("CloudVersion[" + this.cloudVersion + "] is not valid.");
+        }
     }
 
 

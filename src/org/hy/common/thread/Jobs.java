@@ -11,6 +11,7 @@ import org.hy.common.Help;
 import org.hy.common.net.ClientSocketCluster;
 import org.hy.common.net.common.ClientCluster;
 import org.hy.common.net.data.CommunicationResponse;
+import org.hy.common.net.data.LoginRequest;
 import org.hy.common.xml.log.Logger;
 import org.hy.common.xml.plugins.analyse.Cluster;
 
@@ -46,6 +47,7 @@ import org.hy.common.xml.plugins.analyse.Cluster;
  *              v8.0  2020-08-12  添加：判定任务组是否运行中的标记。防止因重复开启Jobs运行造成的紊乱。发现人：张顺
  *              v9.0  2021-04-14  优化：使用专门的（统一的）lastTime来预防时间波动的问题。
  *                                     不再使用 v5.0 版本中，用Job.lastTime 判定的方法。
+ *              v10.0 2021-12-14  优化：使用Net 3.0.0版本，并优化灾备心跳时长间隔为11秒
  */
 public final class Jobs extends Job
 {
@@ -148,8 +150,8 @@ public final class Jobs extends Job
             this.disasterRecoveryJob.setXJavaID($JOB_DisasterRecoverys_Check);
             this.disasterRecoveryJob.setCode(this.disasterRecoveryJob.getXJavaID());
             this.disasterRecoveryJob.setName("定时任务服务的灾备机制的心跳任务");
-            this.disasterRecoveryJob.setIntervalType(Job.$IntervalType_Minute);
-            this.disasterRecoveryJob.setIntervalLen(1);
+            this.disasterRecoveryJob.setIntervalType(Job.$IntervalType_Second);
+            this.disasterRecoveryJob.setIntervalLen(11);
             this.disasterRecoveryJob.setStartTime("2000-01-01 00:00:00");
             this.disasterRecoveryJob.setXid(this.getXJavaID());
             this.disasterRecoveryJob.setMethodName("disasterRecoveryChecks");
@@ -170,6 +172,10 @@ public final class Jobs extends Job
      */
     public List<JobDisasterRecoveryReport> disasterRecoveryChecks()
     {
+        // 数据通讯前，先登录。但不获取登录结果，可直接交给数据通讯方法来处理。好处是：能统一返回异常、未登录和通讯成功的结果
+        ClientSocketCluster.startServer(this.disasterRecoverys);
+        ClientSocketCluster.login(this.disasterRecoverys ,new LoginRequest("Job" ,"").setSystemName("Jobs"));
+        
         Map<ClientCluster ,CommunicationResponse> v_ResponseDatas   = ClientSocketCluster.sendCommands(this.disasterRecoverys ,Cluster.getClusterTimeout() ,this.getXJavaID() ,"getDisasterRecoveryReport" ,true ,"定时任务服务的灾备心跳");
         Date                                      v_MasterStartTime = null;
         ClientCluster                             v_Master          = null;
