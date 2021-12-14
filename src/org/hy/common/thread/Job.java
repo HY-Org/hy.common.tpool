@@ -235,7 +235,7 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
         this.runCount        = 0;
         this.runLogs         = new Busway<String>(1440);
         this.forceRun        = false;
-        this.cloudServer     = "RPC";
+        this.cloudVersion    = "RPC";
     }
     
     
