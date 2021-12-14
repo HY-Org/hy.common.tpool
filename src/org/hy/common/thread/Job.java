@@ -53,6 +53,7 @@ import com.greenpineyu.fel.context.MapContext;
  *              v9.0  2019-03-06  添加：执行日志输出到控制台及二次预防重复执行的可能。
  *              v10.0 2020-01-14  添加：条件表达式支持星期几的判定条件占位符
  *              v11.0 2021-12-14  优化：使用Net 3.0.0版本
+ *                                删除：将desc与comment属性合并
  */
 public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
 {
@@ -185,9 +186,6 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
     
     /** 执行的方法名 */
     private String         methodName;
-    
-    /** 描述 */
-    private String         desc;
     
     /** 是否在初始时(即添加到Jobs时)，就执行一次任务（默认：不执行） */
     private boolean        isInitExecute;
@@ -758,7 +756,7 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
      */
     public String getDesc()
     {
-        return Help.NVL(this.desc);
+        return this.getComment();
     }
 
     
@@ -769,7 +767,7 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
      */
     public void setDesc(String i_Desc)
     {
-        this.desc = i_Desc;
+        this.setComment(i_Desc);
     }
     
     
@@ -804,11 +802,11 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
         
         if ( Help.isNull(this.cloudVersion) || "RPC".equalsIgnoreCase(this.cloudVersion.trim()) )
         {
-            this.clientCluster = new ClientRPC().setHost(v_HostPort[0]).setPort(Integer.parseInt(v_HostPort[1]));
+            this.clientCluster = new ClientRPC().setHost(v_HostPort[0]).setPort(Integer.parseInt(v_HostPort[1])).setComment(Help.NVL(this.getName() ,this.getComment()));
         }
         else if ( "Socket".equalsIgnoreCase(this.cloudVersion) )
         {
-            this.clientCluster = new ClientSocket(v_HostPort[0] ,Integer.parseInt(v_HostPort[1]));
+            this.clientCluster = new ClientSocket(v_HostPort[0] ,Integer.parseInt(v_HostPort[1])).setComment(Help.NVL(this.getName() ,this.getComment()));
         }
         else
         {
@@ -1124,7 +1122,7 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
     @Override
     public String getComment()
     {
-        return this.comment;
+        return Help.NVL(this.comment);
     }
 
 
