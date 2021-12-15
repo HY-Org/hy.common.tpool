@@ -280,7 +280,7 @@ public final class Jobs extends Job
             v_Buffer.append(v_Master.getPort());
             $Logger.info(v_Buffer.toString());
             
-            v_Master.operation().sendCommand(this.getXJavaID() ,"setMaster" ,new Object[]{true ,v_Succeed==this.disasterRecoverys.size()});
+            v_Master.operation().sendCommand($JOB_DisasterRecoverys_Timeout ,this.getXJavaID() ,"setMaster" ,new Object[]{true ,v_Succeed==this.disasterRecoverys.size()});
         }
         
         return v_Reports;

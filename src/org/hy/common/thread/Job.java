@@ -54,6 +54,7 @@ import com.greenpineyu.fel.context.MapContext;
  *              v10.0 2020-01-14  添加：条件表达式支持星期几的判定条件占位符
  *              v11.0 2021-12-14  优化：使用Net 3.0.0版本
  *                                删除：将desc与comment属性合并
+ *                                添加：允许外界直接传入 ClientCluster 对象，方便好的控制通讯，如控制超时时长等
  */
 public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
 {
@@ -362,7 +363,7 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
                         this.clientCluster.operation().login(new LoginRequest("Job" ,"").setSystemName("JobCloud"));
                     }
                     
-                    (new Execute(this.clientCluster.operation() ,"sendCommand" ,new Object[]{this.xid ,this.methodName.trim() ,false})).start();
+                    (new Execute(this.clientCluster.operation() ,"sendCommand" ,new Object[]{-1 ,this.xid ,this.methodName.trim() ,false})).start();
                 }
                 
                 $Logger.info("执行定时任务 " + this.xid + "：" + this.getTaskDesc());
@@ -778,6 +779,35 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
     {
         return cloudServer;
     }
+    
+    
+    /**
+     * 设置云计算服务器的对象
+     * 
+     * @author      ZhengWei(HY)
+     * @createDate  2021-12-15
+     * @version     v1.0
+     * 
+     * @param i_ClientCluster
+     */
+    public void setCloudServer(ClientCluster i_ClientCluster)
+    {
+        this.clientCluster = i_ClientCluster;
+        
+        if ( this.clientCluster != null )
+        {
+            if ( this.clientCluster instanceof ClientRPC )
+            {
+                ((ClientRPC)this.clientCluster).setComment(Help.NVL(this.getName() ,this.getComment()));
+            }
+            else if ( this.clientCluster instanceof ClientSocket )
+            {
+                ((ClientSocket)this.clientCluster).setComment(Help.NVL(this.getName() ,this.getComment()));
+            }
+            
+            this.cloudServer = this.clientCluster.getHost() + ":" + this.clientCluster.getPort();
+        }
+    }
 
     
     /**
@@ -792,7 +822,7 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
         if ( Help.isNull(i_CloudServer) )
         {
             this.clientCluster = null;
-            this.cloudServer = null;
+            this.cloudServer   = null;
             return;
         }
         
