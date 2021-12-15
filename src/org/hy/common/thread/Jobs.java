@@ -13,7 +13,6 @@ import org.hy.common.net.common.ClientCluster;
 import org.hy.common.net.data.CommunicationResponse;
 import org.hy.common.net.data.LoginRequest;
 import org.hy.common.xml.log.Logger;
-import org.hy.common.xml.plugins.analyse.Cluster;
 
 
 
@@ -52,10 +51,14 @@ import org.hy.common.xml.plugins.analyse.Cluster;
 public final class Jobs extends Job
 {
  
-    private static final Logger $Logger = Logger.getLogger(Jobs.class ,true);
+    private static final Logger $Logger                        = Logger.getLogger(Jobs.class ,true);
     
     /** 定时任务服务的灾备机制的心跳任务的XJavaID */
-    public static final String  $JOB_DisasterRecoverys_Check = "JOB_DisasterRecoverys_Check";
+    public static final String  $JOB_DisasterRecoverys_Check   = "JOB_DisasterRecoverys_Check";
+    
+    /** 灾备机制心跳超时时长（单位：毫秒） */
+    public static       Long    $JOB_DisasterRecoverys_Timeout = 5 * 1000L;
+    
     
     /** 最后一次成功执行的时间。预防因主机系统时间不精确，时间同步机制异常（如来回调整时间、时间跳跃、时间波动等） */
     private Date                 lastTime;
@@ -172,70 +175,99 @@ public final class Jobs extends Job
      */
     public List<JobDisasterRecoveryReport> disasterRecoveryChecks()
     {
-        // 数据通讯前，先登录。但不获取登录结果，可直接交给数据通讯方法来处理。好处是：能统一返回异常、未登录和通讯成功的结果
-        ClientSocketCluster.startServer(this.disasterRecoverys);
-        ClientSocketCluster.login(this.disasterRecoverys ,new LoginRequest("Job" ,"").setSystemName("Jobs"));
-        
-        Map<ClientCluster ,CommunicationResponse> v_ResponseDatas   = ClientSocketCluster.sendCommands(this.disasterRecoverys ,Cluster.getClusterTimeout() ,this.getXJavaID() ,"getDisasterRecoveryReport" ,true ,"定时任务服务的灾备心跳");
-        Date                                      v_MasterStartTime = null;
-        ClientCluster                             v_Master          = null;
-        List<ClientCluster>                       v_Slaves          = new ArrayList<ClientCluster>();
-        int                                       v_Succeed         = 0;
-        List<JobDisasterRecoveryReport>           v_Reports         = new ArrayList<JobDisasterRecoveryReport>();
-        JobDisasterRecoveryReport                 v_MasterReport    = null;
-        
-        
-        for (Map.Entry<ClientCluster ,CommunicationResponse> v_Item : v_ResponseDatas.entrySet())
+        Map<ClientCluster ,CommunicationResponse> v_ResponseDatas = null;
+        List<ClientCluster>                       v_Exceptions    = null;
+        try
         {
-            CommunicationResponse     v_ResponseData = v_Item.getValue();
-            JobDisasterRecoveryReport v_Report       = new JobDisasterRecoveryReport();
-            
-            v_Report.setHostName(v_Item.getKey().getHost());
-            v_Report.setPort(    v_Item.getKey().getPort());
-            v_Report.setOK(      false);
-            
-            if ( v_ResponseData.getResult() == 0 )
+            // 数据通讯前，先登录。但不获取登录结果，可直接交给数据通讯方法来处理。好处是：能统一返回异常、未登录和通讯成功的结果
+            v_Exceptions = ClientSocketCluster.startServer(this.disasterRecoverys);
+            v_Exceptions = ClientSocketCluster.login(this.disasterRecoverys ,new LoginRequest("Job" ,"").setSystemName("Jobs").setWaitRequestTimeout($JOB_DisasterRecoverys_Timeout));
+        }
+        finally
+        {
+            if ( !Help.isNull(v_Exceptions) )
             {
-                if ( v_ResponseData.getData() != null && v_ResponseData.getData() instanceof JobDisasterRecoveryReport )
+                StringBuilder v_Buffer = new StringBuilder();
+                
+                for (ClientCluster v_ExceClient : v_Exceptions)
                 {
-                    v_Succeed++;
-                    JobDisasterRecoveryReport v_ReportTemp = (JobDisasterRecoveryReport)v_ResponseData.getData();
-                    
-                    v_Report.setOK(true);
-                    v_Report.setStartTime( v_ReportTemp.getStartTime());
-                    v_Report.setMasterTime(v_ReportTemp.getMasterTime());
-                    
-                    if ( v_MasterStartTime == null )
+                    v_Buffer.append("\n").append(v_ExceClient.getHost()).append(":").append(v_ExceClient.getPort()).append(" 灾备心跳异常.");
+                }
+                
+                $Logger.error(v_Buffer.toString());
+            }
+        }
+        
+        try
+        {
+            v_ResponseDatas = ClientSocketCluster.sendCommands(this.disasterRecoverys ,$JOB_DisasterRecoverys_Timeout ,this.getXJavaID() ,"getDisasterRecoveryReport" ,true ,"定时任务服务的灾备心跳");
+        }
+        catch (Exception exce)
+        {
+            $Logger.error(exce);
+        }
+        
+        Date                            v_MasterStartTime = null;
+        ClientCluster                   v_Master          = null;
+        List<ClientCluster>             v_Slaves          = new ArrayList<ClientCluster>();
+        int                             v_Succeed         = 0;
+        List<JobDisasterRecoveryReport> v_Reports         = new ArrayList<JobDisasterRecoveryReport>();
+        JobDisasterRecoveryReport       v_MasterReport    = null;
+        
+        if ( !Help.isNull(v_ResponseDatas) )
+        {
+            for (Map.Entry<ClientCluster ,CommunicationResponse> v_Item : v_ResponseDatas.entrySet())
+            {
+                CommunicationResponse     v_ResponseData = v_Item.getValue();
+                JobDisasterRecoveryReport v_Report       = new JobDisasterRecoveryReport();
+                
+                v_Report.setHostName(v_Item.getKey().getHost());
+                v_Report.setPort(    v_Item.getKey().getPort());
+                v_Report.setOK(      false);
+                
+                if ( v_ResponseData.getResult() == 0 )
+                {
+                    if ( v_ResponseData.getData() != null && v_ResponseData.getData() instanceof JobDisasterRecoveryReport )
                     {
-                        v_MasterStartTime = v_Report.getStartTime();
-                        v_Master          = v_Item.getKey();
+                        v_Succeed++;
+                        JobDisasterRecoveryReport v_ReportTemp = (JobDisasterRecoveryReport)v_ResponseData.getData();
                         
-                        v_Report.setMaster(true);
-                        v_MasterReport = v_Report;
-                    }
-                    else if ( v_MasterReport != null && v_Master != null && v_MasterStartTime.differ(v_Report.getStartTime()) > 0 )
-                    {
-                        v_Slaves.add(v_Master);
-                        v_MasterStartTime = v_Report.getStartTime();
-                        v_Master          = v_Item.getKey();
+                        v_Report.setOK(true);
+                        v_Report.setStartTime( v_ReportTemp.getStartTime());
+                        v_Report.setMasterTime(v_ReportTemp.getMasterTime());
                         
-                        v_MasterReport.setMaster(false);
-                        v_Report.setMaster(true);
-                        v_MasterReport = v_Report;
-                    }
-                    else
-                    {
-                        v_Slaves.add(v_Item.getKey());
+                        if ( v_MasterStartTime == null )
+                        {
+                            v_MasterStartTime = v_Report.getStartTime();
+                            v_Master          = v_Item.getKey();
+                            
+                            v_Report.setMaster(true);
+                            v_MasterReport = v_Report;
+                        }
+                        else if ( v_MasterReport != null && v_Master != null && v_MasterStartTime.differ(v_Report.getStartTime()) > 0 )
+                        {
+                            v_Slaves.add(v_Master);
+                            v_MasterStartTime = v_Report.getStartTime();
+                            v_Master          = v_Item.getKey();
+                            
+                            v_MasterReport.setMaster(false);
+                            v_Report.setMaster(true);
+                            v_MasterReport = v_Report;
+                        }
+                        else
+                        {
+                            v_Slaves.add(v_Item.getKey());
+                        }
                     }
                 }
+                
+                v_Reports.add(v_Report);
             }
-            
-            v_Reports.add(v_Report);
         }
         
         if ( !Help.isNull(v_Slaves) )
         {
-            ClientSocketCluster.sendCommands(v_Slaves ,Cluster.getClusterTimeout() ,this.getXJavaID() ,"setMaster" ,new Object[]{false ,v_Succeed==this.disasterRecoverys.size()} ,true ,"定时任务服务的灾备机制的Slave");
+            ClientSocketCluster.sendCommands(v_Slaves ,$JOB_DisasterRecoverys_Timeout ,this.getXJavaID() ,"setMaster" ,new Object[]{false ,v_Succeed==this.disasterRecoverys.size()} ,true ,"定时任务服务的灾备机制的Slave");
         }
         
         if ( v_Master != null )
