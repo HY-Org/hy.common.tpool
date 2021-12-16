@@ -200,7 +200,7 @@ public final class Jobs extends Job
         
         try
         {
-            v_ResponseDatas = ClientSocketCluster.sendCommands(this.disasterRecoverys ,$JOB_DisasterRecoverys_Timeout ,this.getXJavaID() ,"getDisasterRecoveryReport" ,true ,"定时任务服务的灾备心跳");
+            v_ResponseDatas = ClientSocketCluster.sendCommands(this.disasterRecoverys ,false ,$JOB_DisasterRecoverys_Timeout ,this.getXJavaID() ,"getDisasterRecoveryReport" ,true ,"定时任务服务的灾备心跳");
         }
         catch (Exception exce)
         {
@@ -267,7 +267,7 @@ public final class Jobs extends Job
         
         if ( !Help.isNull(v_Slaves) )
         {
-            ClientSocketCluster.sendCommands(v_Slaves ,$JOB_DisasterRecoverys_Timeout ,this.getXJavaID() ,"setMaster" ,new Object[]{false ,v_Succeed==this.disasterRecoverys.size()} ,true ,"定时任务服务的灾备机制的Slave");
+            ClientSocketCluster.sendCommands(v_Slaves ,false ,$JOB_DisasterRecoverys_Timeout ,this.getXJavaID() ,"setMaster" ,new Object[]{false ,v_Succeed==this.disasterRecoverys.size()} ,true ,"定时任务服务的灾备机制的Slave");
         }
         
         if ( v_Master != null )
