@@ -154,7 +154,7 @@ public final class Jobs extends Job
             this.disasterRecoveryJob.setCode(this.disasterRecoveryJob.getXJavaID());
             this.disasterRecoveryJob.setName("定时任务服务的灾备机制的心跳任务");
             this.disasterRecoveryJob.setIntervalType(Job.$IntervalType_Second);
-            this.disasterRecoveryJob.setIntervalLen(11);
+            this.disasterRecoveryJob.setIntervalLen(17);
             this.disasterRecoveryJob.setStartTime("2000-01-01 00:00:00");
             this.disasterRecoveryJob.setXid(this.getXJavaID());
             this.disasterRecoveryJob.setMethodName("disasterRecoveryChecks");
