@@ -772,6 +772,10 @@ public final class Jobs extends Job
                 }
                 $Logger.info("在所有服务的同意下，本服务接管定时任务的执行权限。");
             }
+            else
+            {
+                $Logger.info("在所有服务的同意下，本服务接管定时任务的执行权限。但本服务没有开启灾备机制");
+            }
             this.masterCount = 0;
         }
         else if ( i_IsMaster && !this.isMaster )
