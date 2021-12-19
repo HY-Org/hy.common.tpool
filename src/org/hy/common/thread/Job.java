@@ -363,7 +363,7 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
                         this.clientCluster.operation().login(new LoginRequest("Job" ,"").setSystemName("JobCloud"));
                     }
                     
-                    (new Execute(this.clientCluster.operation() ,"sendCommand" ,new Object[]{-1 ,this.xid ,this.methodName.trim() ,false})).start();
+                    (new Execute(this.clientCluster.operation() ,"sendCommand" ,new Object[]{-1L ,this.xid ,this.methodName.trim() ,false})).start();
                 }
                 
                 $Logger.info("执行定时任务 " + this.xid + "：" + this.getTaskDesc());
