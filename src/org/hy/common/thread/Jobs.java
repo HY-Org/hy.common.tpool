@@ -227,7 +227,7 @@ public final class Jobs extends Job
                 
                 if ( v_ResponseData.getResult() == 0 )
                 {
-                    if ( v_ResponseData.getData() != null && v_ResponseData.getData() instanceof JobDisasterRecoveryReport )
+                    if ( v_ResponseData.getData() instanceof JobDisasterRecoveryReport )
                     {
                         v_Succeed++;
                         JobDisasterRecoveryReport v_ReportTemp = (JobDisasterRecoveryReport)v_ResponseData.getData();
