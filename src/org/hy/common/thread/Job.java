@@ -792,20 +792,33 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
      */
     public void setCloudServer(ClientCluster i_ClientCluster)
     {
-        this.clientCluster = i_ClientCluster;
-        
-        if ( this.clientCluster != null )
+        if ( i_ClientCluster != null )
         {
-            if ( this.clientCluster instanceof ClientRPC )
+            if ( i_ClientCluster instanceof ClientRPC )
             {
-                ((ClientRPC)this.clientCluster).setComment(Help.NVL(this.getName() ,this.getComment()));
+                ClientRPC v_OldCRPC = (ClientRPC)i_ClientCluster;
+                ClientRPC v_NewCRPC = new ClientRPC();
+                
+                v_NewCRPC.setHost(       v_OldCRPC.getHost());
+                v_NewCRPC.setPort(       v_OldCRPC.getPort());
+                v_NewCRPC.setTimeout(    v_OldCRPC.getTimeout());
+                v_NewCRPC.setSessionTime(v_OldCRPC.getSessionTime());
+                v_NewCRPC.setComment(    v_OldCRPC.getComment());
+                
+                this.clientCluster = v_NewCRPC;
             }
             else if ( this.clientCluster instanceof ClientSocket )
             {
+                this.clientCluster = i_ClientCluster;
                 ((ClientSocket)this.clientCluster).setComment(Help.NVL(this.getName() ,this.getComment()));
             }
             
             this.cloudServer = this.clientCluster.getHost() + ":" + this.clientCluster.getPort();
+        }
+        else
+        {
+            this.clientCluster = null;
+            this.cloudServer   = null;
         }
     }
 
