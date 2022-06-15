@@ -19,6 +19,7 @@ import org.hy.common.xml.XJava;
  *              v2.0  2018-04-11  添加：执行次数的统计属性
  *              v3.0  2018-05-22  添加：执行历史日志
  *              v4.0  2020-04-17  添加：云计算服务器的地址端口
+ *              v5.0  2022-06-15  添加：是否调度执行，true仅表示，是否有调度成功，如远程服务是否成功接收了调度消息，但并不关心远程服务是否真的执行了任务
  */
 public class JobReport extends SerializableDef
 {
@@ -52,6 +53,15 @@ public class JobReport extends SerializableDef
     /** 描述 */
     private String     jobDesc;
     
+    /**
+     * 是否调度执行。
+     * 
+     * NULL表示尚未执行。
+     * true仅表示，是否有调度成功，如远程服务是否成功接收了调度消息，但并不关心远程服务是否真的执行了任务
+     * false表示，未成功调度，执行前异常
+     */
+    private Boolean    isExecuteOK;
+    
     
     
     public JobReport(String i_JobID ,Job i_Job)
@@ -62,6 +72,7 @@ public class JobReport extends SerializableDef
         this.cloudServer = i_Job.getCloudServer();
         this.runCount    = i_Job.getRunCount();
         this.runLogs     = i_Job.getRunLogs().getArray();
+        this.isExecuteOK = i_Job.getIsExecuteOK();
         
         boolean             v_IsAddJobs = false;
         Map<String ,Object> v_JobsMap   = XJava.getObjects(Jobs.class ,false);
@@ -117,7 +128,7 @@ public class JobReport extends SerializableDef
                 this.intervalType = "年";   break;
                 
             default:
-                this.intervalType = "手工"; 
+                this.intervalType = "手工";
                 this.intervalLen  = "-";
                 break;
         }
@@ -181,7 +192,7 @@ public class JobReport extends SerializableDef
     /**
      * 设置：Job ID
      * 
-     * @param jobID 
+     * @param jobID
      */
     public void setJobID(String jobID)
     {
@@ -192,7 +203,7 @@ public class JobReport extends SerializableDef
     /**
      * 设置：间隔类型
      * 
-     * @param intervalType 
+     * @param intervalType
      */
     public void setIntervalType(String intervalType)
     {
@@ -203,7 +214,7 @@ public class JobReport extends SerializableDef
     /**
      * 设置：间隔长度
      * 
-     * @param intervalLen 
+     * @param intervalLen
      */
     public void setIntervalLen(String intervalLen)
     {
@@ -214,7 +225,7 @@ public class JobReport extends SerializableDef
     /**
      * 设置：最后执行时间
      * 
-     * @param lastTime 
+     * @param lastTime
      */
     public void setLastTime(String lastTime)
     {
@@ -225,7 +236,7 @@ public class JobReport extends SerializableDef
     /**
      * 设置：计划执行时间
      * 
-     * @param nextTime 
+     * @param nextTime
      */
     public void setNextTime(String nextTime)
     {
@@ -245,7 +256,7 @@ public class JobReport extends SerializableDef
     /**
      * 设置：执行次数
      * 
-     * @param runCount 
+     * @param runCount
      */
     public void setRunCount(Long runCount)
     {
@@ -265,7 +276,7 @@ public class JobReport extends SerializableDef
     /**
      * 设置：执行日志。记录最后32次内的执行时间
      * 
-     * @param runLogs 
+     * @param runLogs
      */
     public void setRunLogs(Object [] runLogs)
     {
@@ -276,7 +287,7 @@ public class JobReport extends SerializableDef
     /**
      * 设置：描述
      * 
-     * @param jobDesc 
+     * @param jobDesc
      */
     public void setJobDesc(String jobDesc)
     {
@@ -296,11 +307,26 @@ public class JobReport extends SerializableDef
     /**
      * 设置：云计算服务器的地址端口。格式为：IP:Port
      * 
-     * @param cloudServer 
+     * @param cloudServer
      */
     public void setCloudServer(String cloudServer)
     {
         this.cloudServer = cloudServer;
+    }
+    
+    
+    /**
+     * 是否调度执行。
+     * 
+     * NULL表示尚未执行。
+     * true仅表示，是否有调度成功，如远程服务是否成功接收了调度消息，但并不关心远程服务是否真的执行了任务
+     * false表示，未成功调度，执行前异常
+     * 
+     * @return
+     */
+    public Boolean getIsExecuteOK()
+    {
+        return isExecuteOK;
     }
     
 }

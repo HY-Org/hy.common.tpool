@@ -57,6 +57,7 @@ import com.greenpineyu.fel.context.MapContext;
  *                                删除：将desc与comment属性合并
  *                                添加：允许外界直接传入 ClientCluster 对象，方便好的控制通讯，如控制超时时长等
  *              v12.0 2022-06-15  添加：记录执行的消息流水和消息发送结果
+ *                                添加：是否调度执行，true仅表示，是否有调度成功，如远程服务是否成功接收了调度消息，但并不关心远程服务是否真的执行了任务
  */
 public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
 {
@@ -196,6 +197,15 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
     /** 当 isInitExecute = true 时，这个任务是串行立刻执行? 还是多线程池执行（默认：延时执行） */
     private boolean        isAtOnceExecute;
     
+    /**
+     * 是否调度执行。
+     * 
+     * NULL表示尚未执行。
+     * true仅表示，是否有调度成功，如远程服务是否成功接收了调度消息，但并不关心远程服务是否真的执行了任务
+     * false表示，未成功调度，执行前异常
+     */
+    private Boolean        isExecuteOK;
+    
     private Jobs           jobs;
     
     /** 执行次数 */
@@ -234,6 +244,7 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
         this.taskCount       = 1;
         this.isInitExecute   = false;
         this.isAtOnceExecute = false;
+        this.isExecuteOK     = null;
         this.lastTime        = null;
         this.runCount        = 0;
         this.runLogs         = new Busway<String>(1440);
@@ -346,25 +357,18 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
                     Object v_Object = XJava.getObject(this.xid.trim());
                     if ( v_Object == null )
                     {
+                        this.isExecuteOK = false;
+                        this.runLogs.put(this.lastTime.getFullMilli() + "  R=-3");
                         throw new NullPointerException("Job.getXid() = " + this.xid + " XJava.getObject(...) is null.");
                     }
                     
-                    this.runLogs.put(this.lastTime.getFullMilli());
+                    this.runLogs.put(this.lastTime.getFullMilli() + "  R=本机触发成功");
                     (new Execute(v_Object ,this.methodName.trim())).start();
+                    this.isExecuteOK = true;
                 }
                 // 云服务执行：当配置CloudServer时。
                 else
                 {
-                    if ( !this.clientCluster.operation().isStartServer() )
-                    {
-                        this.clientCluster.operation().startServer();
-                    }
-                    
-                    if ( !this.clientCluster.operation().isLogin() )
-                    {
-                        this.clientCluster.operation().login(new LoginRequest("Job" ,"").setSystemName("JobCloud"));
-                    }
-                    
                     new Execute(this ,"executeCluster").start();
                 }
                 
@@ -403,20 +407,42 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
     {
         try
         {
+            if ( !this.clientCluster.operation().isStartServer() )
+            {
+                this.clientCluster.operation().startServer();
+            }
+            
+            if ( !this.clientCluster.operation().isLogin() )
+            {
+                this.clientCluster.operation().login(new LoginRequest("Job" ,"").setSystemName("JobCloud"));
+            }
+            
             CommunicationResponse v_Response = this.clientCluster.operation().sendCommand(-1L ,this.xid ,this.methodName.trim() ,false ,true);
             
             if ( v_Response != null )
             {
-                String v_Result = CommunicationResponse.$Succeed == v_Response.getResult() ? "对方接收成功" : "" + v_Response.getResult();
+                String v_Result = null;
+                if ( CommunicationResponse.$Succeed == v_Response.getResult() )
+                {
+                    this.isExecuteOK = true;
+                    v_Result         = "对方接收成功";
+                }
+                else
+                {
+                    this.isExecuteOK = false;
+                    v_Result         = "" + v_Response.getResult();
+                }
                 this.runLogs.put(this.lastTime.getFullMilli() + "  " + v_Response.getSerialNo() + "  R=" + v_Result);
             }
             else
             {
+                this.isExecuteOK = false;
                 this.runLogs.put(this.lastTime.getFullMilli() + "  R=-1");
             }
         }
         catch (Exception exce)
         {
+            this.isExecuteOK = false;
             this.runLogs.put(this.lastTime.getFullMilli() + "  R=-2  " + exce.getMessage());
             $Logger.error(exce);
         }
@@ -1243,6 +1269,22 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
         {
             throw new java.lang.VerifyError("CloudVersion[" + this.cloudVersion + "] is not valid.");
         }
+    }
+    
+    
+    
+    /**
+     * 是否调度执行。
+     * 
+     * NULL表示尚未执行。
+     * true仅表示，是否有调度成功，如远程服务是否成功接收了调度消息，但并不关心远程服务是否真的执行了任务
+     * false表示，未成功调度，执行前异常
+     * 
+     * @return
+     */
+    public Boolean getIsExecuteOK()
+    {
+        return isExecuteOK;
     }
 
 
