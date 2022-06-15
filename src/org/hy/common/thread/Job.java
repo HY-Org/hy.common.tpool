@@ -11,6 +11,7 @@ import org.hy.common.StringHelp;
 import org.hy.common.XJavaID;
 import org.hy.common.net.ClientSocket;
 import org.hy.common.net.common.ClientCluster;
+import org.hy.common.net.data.CommunicationResponse;
 import org.hy.common.net.data.LoginRequest;
 import org.hy.common.net.netty.rpc.ClientRPC;
 import org.hy.common.xml.XJava;
@@ -55,6 +56,7 @@ import com.greenpineyu.fel.context.MapContext;
  *              v11.0 2021-12-14  优化：使用Net 3.0.0版本
  *                                删除：将desc与comment属性合并
  *                                添加：允许外界直接传入 ClientCluster 对象，方便好的控制通讯，如控制超时时长等
+ *              v12.0 2022-06-15  添加：记录执行的消息流水和消息发送结果
  */
 public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
 {
@@ -337,7 +339,6 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
             if ( v_IsAllow )
             {
                 this.runCount++;
-                this.runLogs.put(this.lastTime.getFullMilli());
                 
                 // 本机执行：默认的
                 if ( this.clientCluster == null )
@@ -348,6 +349,7 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
                         throw new NullPointerException("Job.getXid() = " + this.xid + " XJava.getObject(...) is null.");
                     }
                     
+                    this.runLogs.put(this.lastTime.getFullMilli());
                     (new Execute(v_Object ,this.methodName.trim())).start();
                 }
                 // 云服务执行：当配置CloudServer时。
@@ -363,7 +365,7 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
                         this.clientCluster.operation().login(new LoginRequest("Job" ,"").setSystemName("JobCloud"));
                     }
                     
-                    (new Execute(this.clientCluster.operation() ,"sendCommand" ,new Object[]{-1L ,this.xid ,this.methodName.trim() ,false ,true})).start();
+                    new Execute(this ,"executeCluster").start();
                 }
                 
                 $Logger.info("执行定时任务 " + this.xid + "：" + this.getTaskDesc());
@@ -386,6 +388,38 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
             // 当 this.jobs 为空时，表示本方法是手工执行，并不是定时任务自动执行的。
         }
         */
+    }
+    
+    
+    
+    /**
+     * 远程调试执行。并记录执行的消息流水和消息发送结果
+     * 
+     * @author      ZhengWei(HY)
+     * @createDate  2022-06-15
+     * @version     v1.0
+     */
+    public void executeCluster()
+    {
+        try
+        {
+            CommunicationResponse v_Response = this.clientCluster.operation().sendCommand(-1L ,this.xid ,this.methodName.trim() ,false ,true);
+            
+            if ( v_Response != null )
+            {
+                String v_Result = CommunicationResponse.$Succeed == v_Response.getResult() ? "对方接收成功" : "" + v_Response.getResult();
+                this.runLogs.put(this.lastTime.getFullMilli() + "  " + v_Response.getSerialNo() + "  R=" + v_Result);
+            }
+            else
+            {
+                this.runLogs.put(this.lastTime.getFullMilli() + "  R=-1");
+            }
+        }
+        catch (Exception exce)
+        {
+            this.runLogs.put(this.lastTime.getFullMilli() + "  R=-2  " + exce.getMessage());
+            $Logger.error(exce);
+        }
     }
     
     
