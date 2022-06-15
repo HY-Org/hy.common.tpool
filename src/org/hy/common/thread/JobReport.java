@@ -44,6 +44,13 @@ public class JobReport extends SerializableDef
     /** 执行次数 */
     private Long       runCount;
     
+    /**
+     * 执行成功次数。
+     * 
+     * 是否有调度成功，如远程服务是否成功接收了调度消息，但并不关心远程服务是否真的执行了任务
+     */
+    private long       runOKCount;
+    
     /** 执行日志。记录最后32次内的执行时间 */
     private Object []  runLogs;
     
@@ -52,15 +59,6 @@ public class JobReport extends SerializableDef
     
     /** 描述 */
     private String     jobDesc;
-    
-    /**
-     * 是否调度执行。
-     * 
-     * NULL表示尚未执行。
-     * true仅表示，是否有调度成功，如远程服务是否成功接收了调度消息，但并不关心远程服务是否真的执行了任务
-     * false表示，未成功调度，执行前异常
-     */
-    private Boolean    isExecuteOK;
     
     
     
@@ -71,8 +69,8 @@ public class JobReport extends SerializableDef
         this.jobDesc     = i_Job.getTaskDesc();
         this.cloudServer = i_Job.getCloudServer();
         this.runCount    = i_Job.getRunCount();
+        this.runOKCount  = i_Job.getRunOKCount();
         this.runLogs     = i_Job.getRunLogs().getArray();
-        this.isExecuteOK = i_Job.getIsExecuteOK();
         
         boolean             v_IsAddJobs = false;
         Map<String ,Object> v_JobsMap   = XJava.getObjects(Jobs.class ,false);
@@ -318,15 +316,13 @@ public class JobReport extends SerializableDef
     /**
      * 是否调度执行。
      * 
-     * NULL表示尚未执行。
-     * true仅表示，是否有调度成功，如远程服务是否成功接收了调度消息，但并不关心远程服务是否真的执行了任务
-     * false表示，未成功调度，执行前异常
+     * 是否有调度成功，如远程服务是否成功接收了调度消息，但并不关心远程服务是否真的执行了任务
      * 
      * @return
      */
-    public Boolean getIsExecuteOK()
+    public long getRunOKCount()
     {
-        return isExecuteOK;
+        return this.runOKCount;
     }
     
 }

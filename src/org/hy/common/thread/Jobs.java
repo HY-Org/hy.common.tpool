@@ -767,7 +767,7 @@ public final class Jobs extends Job
                 if ( this.disasterRecoveryJob != null )
                 {
                     // 这里没有直接调用 delJob(this.disasterRecoveryJob) 的原因是：delJob 方法也是同步的。
-                    this.jobList.remove(this.disasterRecoveryJob);
+                    this.jobList.remove(   this.disasterRecoveryJob);
                     this.jobMonitor.remove(this.disasterRecoveryJob.getCode());
                 }
                 $Logger.info("在所有服务的同意下，本服务接管定时任务的执行权限。");
