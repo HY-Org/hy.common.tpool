@@ -58,6 +58,7 @@ import com.greenpineyu.fel.context.MapContext;
  *                                添加：允许外界直接传入 ClientCluster 对象，方便好的控制通讯，如控制超时时长等
  *              v12.0 2022-06-15  添加：记录执行的消息流水和消息发送结果
  *                                添加：执行成功次数，是否有调度成功，如远程服务是否成功接收了调度消息，但并不关心远程服务是否真的执行了任务
+ *                                添加：尝试执行次数和尝试时间间隔
  */
 public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
 {
@@ -114,6 +115,12 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
     
     /** 表达式引擎 */
     private static final FelEngine $FelEngine           = new FelEngineImpl();
+    
+    /** 执行未成功时，尝试执行的最大次数 */
+    private static final int       $TryMaxCount         = 10;
+    
+    /** 执行未成功时，每次尝试间隔时长（秒） */
+    private static final int       $TryIntervalLen      = 5;
     
     
     private static       long      $SerialNo            = 0;
@@ -199,6 +206,12 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
     
     private Jobs           jobs;
     
+    /** 执行未成功时，尝试执行的最大次数 */
+    private int            tryMaxCount;
+    
+    /** 执行未成功时，每次尝试间隔时长（秒） */
+    private int            tryIntervalLen;
+    
     /** 执行次数 */
     private long           runCount;
     
@@ -243,6 +256,8 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
         this.isInitExecute   = false;
         this.isAtOnceExecute = false;
         this.lastTime        = null;
+        this.tryMaxCount     = $TryMaxCount;
+        this.tryIntervalLen  = $TryIntervalLen;
         this.runCount        = 0L;
         this.runOKCount      = 0L;
         this.runLogs         = new Busway<String>(1440);
@@ -402,6 +417,40 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
      */
     public void executeCluster()
     {
+        int v_TryCount = 1;
+        
+        while ( v_TryCount <= this.tryMaxCount )
+        {
+            if ( againExecuteCluster(v_TryCount++) )
+            {
+                v_TryCount = this.tryMaxCount + 1;
+                break;
+            }
+            
+            try
+            {
+                Thread.sleep(this.tryIntervalLen * 1000);
+            }
+            catch (InterruptedException e)
+            {
+                // Nothing.
+            }
+        }
+    }
+    
+    
+    
+    /**
+     * 当首次执行未成功时，尝试再执行一次远程调试执行
+     * 
+     * @author      ZhengWei(HY)
+     * @createDate  2022-06-15
+     * @version     v1.0
+     * 
+     * @param  i_TryCount  尝试执行次数
+     */
+    private boolean againExecuteCluster(int i_TryCount)
+    {
         boolean v_IsOK = false;
         
         try
@@ -424,8 +473,8 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
                 if ( CommunicationResponse.$Succeed == v_Response.getResult() )
                 {
                     this.runOKCount++;
-                    v_Result = "对方接收成功";
-                    v_IsOK   = true;
+                    v_Result = "对方接收成功 " + i_TryCount;
+                    v_IsOK = true;
                 }
                 else
                 {
@@ -444,60 +493,7 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
             $Logger.error(exce);
         }
         
-        if ( !v_IsOK )
-        {
-            this.againExecuteCluster();
-        }
-    }
-    
-    
-    
-    /**
-     * 当首次执行未成功时，尝试再执行一次远程调试执行
-     * @author      ZhengWei(HY)
-     * @createDate  2022-06-15
-     * @version     v1.0
-     */
-    private void againExecuteCluster()
-    {
-        try
-        {
-            if ( !this.clientCluster.operation().isStartServer() )
-            {
-                this.clientCluster.operation().startServer();
-            }
-            
-            if ( !this.clientCluster.operation().isLogin() )
-            {
-                this.clientCluster.operation().login(new LoginRequest("Job" ,"").setSystemName("JobCloud"));
-            }
-            
-            CommunicationResponse v_Response = this.clientCluster.operation().sendCommand(-1L ,this.xid ,this.methodName.trim() ,false ,true);
-            
-            if ( v_Response != null )
-            {
-                String v_Result = null;
-                if ( CommunicationResponse.$Succeed == v_Response.getResult() )
-                {
-                    this.runOKCount++;
-                    v_Result = "对方接收成功 2";
-                }
-                else
-                {
-                    v_Result = "" + v_Response.getResult();
-                }
-                this.runLogs.put(Date.getNowTime().getFullMilli() + "  " + v_Response.getSerialNo() + "  R=" + v_Result);
-            }
-            else
-            {
-                this.runLogs.put(Date.getNowTime().getFullMilli() + "  R=-1");
-            }
-        }
-        catch (Exception exce)
-        {
-            this.runLogs.put(Date.getNowTime().getFullMilli() + "  R=-2  " + exce.getMessage());
-            $Logger.error(exce);
-        }
+        return v_IsOK;
     }
     
     
@@ -1325,6 +1321,55 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
     
     
     
+    
+    /**
+     * 执行未成功时，尝试执行的最大次数
+     * 
+     * @return
+     */
+    public int getTryMaxCount()
+    {
+        return tryMaxCount;
+    }
+
+
+
+    /**
+     * 执行未成功时，尝试执行的最大次数
+     * 
+     * @param tryMaxCount
+     */
+    public void setTryMaxCount(int tryMaxCount)
+    {
+        this.tryMaxCount = tryMaxCount;
+    }
+
+
+
+    /**
+     * 执行未成功时，每次尝试间隔时长（秒）
+     * 
+     * @return
+     */
+    public int getTryIntervalLen()
+    {
+        return tryIntervalLen;
+    }
+
+
+
+    /**
+     * 执行未成功时，每次尝试间隔时长（秒）
+     * 
+     * @param tryIntervalLen
+     */
+    public void setTryIntervalLen(int tryIntervalLen)
+    {
+        this.tryIntervalLen = tryIntervalLen;
+    }
+
+
+
     /**
      * 是否调度执行。
      * 
