@@ -1,6 +1,8 @@
 package org.hy.common.thread;
 
+import org.hy.common.Help;
 import org.hy.common.xml.SerializableDef;
+import org.hy.common.xml.log.Logger;
 
 
 
@@ -12,11 +14,13 @@ import org.hy.common.xml.SerializableDef;
  * @author      ZhengWei(HY)
  * @createDate  2018-02-26
  * @version     v1.0
+ *              v2.0  2022-06-17  添加：预防获取任务信息的异常
  */
 public class ThreadReport extends SerializableDef
 {
+    private static final Logger $Logger          = new Logger(ThreadReport.class);
     
-    private static final long serialVersionUID = 2246388152740563211L;
+    private static final long   serialVersionUID = 2246388152740563211L;
     
     
     /** 线程编号 */
@@ -47,8 +51,17 @@ public class ThreadReport extends SerializableDef
         Task<?> v_Task = i_ThreadBase.getTaskObject();
         if ( v_Task != null )
         {
-            this.taskName = v_Task.getTaskName();
-            this.taskDesc = v_Task.getTaskDesc();
+            try
+            {
+                this.taskName = v_Task.getTaskName();
+                this.taskDesc = v_Task.getTaskDesc();
+            }
+            catch (Exception exce)
+            {
+                $Logger.warn(exce);
+                this.taskName = Help.NVL(this.taskName);
+                this.taskDesc = Help.NVL(this.taskDesc);
+            }
         }
         else
         {
@@ -129,7 +142,7 @@ public class ThreadReport extends SerializableDef
     /**
      * 设置：最后更新时间
      * 
-     * @param lastTime 
+     * @param lastTime
      */
     public void setLastTime(String lastTime)
     {
@@ -171,7 +184,7 @@ public class ThreadReport extends SerializableDef
     /**
      * 设置：线程编号
      * 
-     * @param threadNo 
+     * @param threadNo
      */
     public void setThreadNo(String threadNo)
     {
@@ -183,7 +196,7 @@ public class ThreadReport extends SerializableDef
     /**
      * 设置：任务编号
      * 
-     * @param taskName 
+     * @param taskName
      */
     public void setTaskName(String taskName)
     {
@@ -195,7 +208,7 @@ public class ThreadReport extends SerializableDef
     /**
      * 设置：累计用时
      * 
-     * @param totalTime 
+     * @param totalTime
      */
     public void setTotalTime(long totalTime)
     {
@@ -207,7 +220,7 @@ public class ThreadReport extends SerializableDef
     /**
      * 设置：运行状态
      * 
-     * @param runStatus 
+     * @param runStatus
      */
     public void setRunStatus(String runStatus)
     {
@@ -219,7 +232,7 @@ public class ThreadReport extends SerializableDef
     /**
      * 设置：执行次数
      * 
-     * @param execCount 
+     * @param execCount
      */
     public void setExecCount(long execCount)
     {
@@ -231,7 +244,7 @@ public class ThreadReport extends SerializableDef
     /**
      * 设置：任务描述
      * 
-     * @param taskDesc 
+     * @param taskDesc
      */
     public void setTaskDesc(String taskDesc)
     {
