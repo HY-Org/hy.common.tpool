@@ -73,7 +73,7 @@ public class JobReport extends SerializableDef
         this.cloudServer = i_Job.getCloudServer();
         this.runCount    = i_Job.getRunCount();
         this.runOKCount  = i_Job.getRunOKCount();
-        this.runLogs     = i_Job.getRunLogs().getArray();
+        this.runLogs     = i_Job.getRunLogs().toArray();
         
         boolean v_IsAddJobs = false;
         try

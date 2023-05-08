@@ -1,6 +1,6 @@
-Manifest-Version: 1.3.2
+Manifest-Version: 1.3.3
 Created-By: HY.ZhengWei@qq.com  2011
-Specification-Version: 1.3.2  2023-01-11
+Specification-Version: 1.3.3  2023-05-08
 SourceCode: https://github.com/HY-ZhengWei/hy.common.tpool
 SourceCodeChina: https://gitee.com/HY-ZhengWei/hy.common.tpool
 Build-JDK: 1.8
