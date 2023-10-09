@@ -60,6 +60,7 @@ import com.greenpineyu.fel.context.MapContext;
  *              v12.0 2022-06-15  添加：记录执行的消息流水和消息发送结果
  *                                添加：执行成功次数，是否有调度成功，如远程服务是否成功接收了调度消息，但并不关心远程服务是否真的执行了任务
  *                                添加：尝试执行次数和尝试时间间隔
+ *              v13.0 2023-10-08  添加：通过参数，可允许备节点也执行定时任务
  */
 public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
 {
@@ -164,6 +165,9 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
     /** 强行执行。即不受时间波动的监管也要执行。哪怕是时间回退了，也要执行 */
     private boolean        forceRun;
     
+    /** 备节点是否执行。默认情况下：仅允许主节点执行 */
+    private boolean        slaveRun;
+    
     /**
      * 允许执行的条件。
      * 
@@ -263,6 +267,7 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
         this.runOKCount      = 0L;
         this.runLogs         = new Busway<String>(1440);
         this.forceRun        = false;
+        this.slaveRun        = false;
         this.cloudVersion    = "RPC";
     }
     
@@ -1200,7 +1205,14 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
             {
                 if ( !this.jobs.isMaster() )
                 {
-                    return Jobs.$JOB_DisasterRecoverys_Check.equals(this.xjavaID);
+                    if ( this.isSlaveRun() )
+                    {
+                        // 允许备节点也执行定时任务（须满足基本条件）
+                    }
+                    else
+                    {
+                        return Jobs.$JOB_DisasterRecoverys_Check.equals(this.xjavaID);
+                    }
                 }
             }
         }
@@ -1251,6 +1263,28 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
     public void setForceRun(boolean forceRun)
     {
         this.forceRun = forceRun;
+    }
+
+
+    
+    /**
+     * 获取：备节点是否执行。默认情况下：仅允许主节点执行
+     */
+    public boolean isSlaveRun()
+    {
+        return slaveRun;
+    }
+
+    
+
+    /**
+     * 设置：备节点是否执行。默认情况下：仅允许主节点执行
+     * 
+     * @param i_SlaveRun 备节点是否执行。默认情况下：仅允许主节点执行
+     */
+    public void setSlaveRun(boolean i_SlaveRun)
+    {
+        this.slaveRun = i_SlaveRun;
     }
 
 
