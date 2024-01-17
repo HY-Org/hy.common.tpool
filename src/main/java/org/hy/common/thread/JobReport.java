@@ -64,8 +64,26 @@ public class JobReport extends SerializableDef
     
     
     
-    @SuppressWarnings("unchecked")
     public JobReport(String i_JobID ,Job i_Job)
+    {
+        this(i_JobID ,i_Job ,null);
+    }
+    
+    
+    
+    /**
+     * 任务汇报信息
+     *
+     * @author      ZhengWei(HY)
+     * @createDate  2024-01-17
+     * @version     v1.0
+     *
+     * @param i_JobID      任务XID
+     * @param i_Job        任务
+     * @param i_IsAddJobs  任务是否添加到任务池中
+     */
+    @SuppressWarnings("unchecked")
+    public JobReport(String i_JobID ,Job i_Job ,Boolean i_IsAddJobs)
     {
         this.jobID       = i_JobID;
         this.intervalLen = i_Job.getIntervalLen() + "";
@@ -76,34 +94,41 @@ public class JobReport extends SerializableDef
         this.runLogs     = i_Job.getRunLogs().toArray();
         
         boolean v_IsAddJobs = false;
-        try
+        if ( i_IsAddJobs != null )
         {
-            // 用反射的方式执行 XJava.getObjects()
-            Method v_XJavaGetObjectMethod = Help.forName("org.hy.common.xml.XJava").getMethod("getObjects" ,Class.class ,boolean.class);
-            Map<String ,Object> v_JobsMap = (Map<String ,Object>) StaticReflect.invoke(v_XJavaGetObjectMethod ,Jobs.class ,false);
-            if ( !Help.isNull(v_JobsMap) )
+            v_IsAddJobs = i_IsAddJobs;
+        }
+        else
+        {
+            try
             {
-                for (Object v_Item : v_JobsMap.values())
+                // 用反射的方式执行 XJava.getObjects()
+                Method v_XJavaGetObjectMethod = Help.forName("org.hy.common.xml.XJava").getMethod("getObjects" ,Class.class ,boolean.class);
+                Map<String ,Object> v_JobsMap = (Map<String ,Object>) StaticReflect.invoke(v_XJavaGetObjectMethod ,Jobs.class ,false);
+                if ( !Help.isNull(v_JobsMap) )
                 {
-                    Jobs          v_Jobs    = (Jobs)v_Item;
-                    Iterator<Job> v_JobIter = v_Jobs.getJobs();
-                    
-                    while (v_JobIter.hasNext())
+                    for (Object v_Item : v_JobsMap.values())
                     {
-                        if ( i_Job == v_JobIter.next() )
+                        Jobs          v_Jobs    = (Jobs)v_Item;
+                        Iterator<Job> v_JobIter = v_Jobs.getJobs();
+                        
+                        while (v_JobIter.hasNext())
                         {
-                            v_IsAddJobs = true;
-                            break;
+                            if ( i_Job == v_JobIter.next() )
+                            {
+                                v_IsAddJobs = true;
+                                break;
+                            }
                         }
+                        
+                        if ( v_IsAddJobs ) break;
                     }
-                    
-                    if ( v_IsAddJobs ) break;
                 }
             }
-        }
-        catch (Exception exce)
-        {
-            exce.printStackTrace();
+            catch (Exception exce)
+            {
+                exce.printStackTrace();
+            }
         }
         
         if ( v_IsAddJobs )
