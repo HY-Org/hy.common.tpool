@@ -28,3 +28,5 @@ copy hy.common.tpool-sources.jar ..\..\..
 del /Q hy.common.tpool-sources.jar
 rd /s/q META-INF
 cd ..\..\..
+
+pause
