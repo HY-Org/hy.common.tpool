@@ -392,7 +392,7 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
                     new Execute(this ,"executeCluster").start();
                 }
                 
-                $Logger.info("执行定时任务 " + this.xid + "：" + this.getTaskDesc());
+                $Logger.info("执行定时任务 " + this.xid + "." + this.getMethodName() + "：" + this.getTaskDesc());
             }
         }
         catch (Exception exce)
