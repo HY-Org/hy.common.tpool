@@ -480,8 +480,6 @@ public abstract class Task<O> implements Runnable
     
     protected void finalize() throws Throwable 
     {
-        super.finalize();
-        
         this.finalizeDatas();
     }
         

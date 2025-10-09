@@ -64,7 +64,7 @@ import com.greenpineyu.fel.context.MapContext;
  */
 public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
 {
-    private static final Logger $Logger = Logger.getLogger(Jobs.class ,true);
+    private static final Logger $Logger = Logger.getLogger(Job.class ,true);
     
     /** 间隔类型: 秒 */
     public  static final int       $IntervalType_Second = -2;

@@ -716,12 +716,11 @@ public class ThreadBase
     @Override
     protected void finalize() throws Throwable
     {
-        super.finalize();
         this.shutdown();
     }
 
 
-
+    
 
 
     class CoreThread implements Runnable
