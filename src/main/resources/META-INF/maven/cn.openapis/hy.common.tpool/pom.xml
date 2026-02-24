@@ -6,7 +6,7 @@
 
     <groupId>org</groupId>
     <artifactId>hy.common.tpool</artifactId>
-    <version>1.4.0</version>
+    <version>1.4.1</version>
     <packaging>jar</packaging>
 
     <name>org.hy.common.tpool</name>
@@ -40,14 +40,14 @@
         <dependency>
             <groupId>org</groupId>
             <artifactId>hy.common.base</artifactId>
-            <version>1.0.202</version>
+            <version>1.0.205</version>
             <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>org</groupId>
             <artifactId>hy.common.file</artifactId>
-            <version>1.4.2</version>
+            <version>1.5.8</version>
             <scope>provided</scope>
             <exclusions>
                 <exclusion>
@@ -85,9 +85,9 @@
         </dependency>
 
         <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>servlet-api</artifactId>
-            <version>3.0-alpha-1</version>
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
+            <version>6.1.0</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
