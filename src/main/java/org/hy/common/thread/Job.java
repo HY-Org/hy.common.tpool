@@ -61,6 +61,7 @@ import com.greenpineyu.fel.context.MapContext;
  *                                添加：执行成功次数，是否有调度成功，如远程服务是否成功接收了调度消息，但并不关心远程服务是否真的执行了任务
  *                                添加：尝试执行次数和尝试时间间隔
  *              v13.0 2023-10-08  添加：通过参数，可允许备节点也执行定时任务
+ *              v14.0 2026-02-27  修正：反射XJava时，必须把第二个参数设为 true，让类在加载时完成初始化，同时加载其依赖的 XCQL/Result 类
  */
 public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
 {
@@ -374,7 +375,7 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
                 if ( this.clientCluster == null )
                 {
                     // 用反射的方式执行 XJava.getObject()
-                    Method v_XJavaGetObjectMethod = Help.forName("org.hy.common.xml.XJava").getMethod("getObject" ,String.class);
+                    Method v_XJavaGetObjectMethod = Class.forName("org.hy.common.xml.XJava").getMethod("getObject" ,String.class);
                     Object v_Object               = StaticReflect.invoke(v_XJavaGetObjectMethod ,this.xid.trim());
                     if ( v_Object == null )
                     {
