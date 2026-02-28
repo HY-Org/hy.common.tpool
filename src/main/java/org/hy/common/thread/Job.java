@@ -375,7 +375,7 @@ public class Job extends Task<Object> implements Comparable<Job> ,XJavaID
                 if ( this.clientCluster == null )
                 {
                     // 用反射的方式执行 XJava.getObject()
-                    Method v_XJavaGetObjectMethod = Class.forName("org.hy.common.xml.XJava").getMethod("getObject" ,String.class);
+                    Method v_XJavaGetObjectMethod = Help.forName("org.hy.common.xml.XJava").getMethod("getObject" ,String.class);
                     Object v_Object               = StaticReflect.invoke(v_XJavaGetObjectMethod ,this.xid.trim());
                     if ( v_Object == null )
                     {

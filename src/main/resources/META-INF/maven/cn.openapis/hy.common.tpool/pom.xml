@@ -6,7 +6,7 @@
 
     <groupId>org</groupId>
     <artifactId>hy.common.tpool</artifactId>
-    <version>1.4.2</version>
+    <version>1.4.3</version>
     <packaging>jar</packaging>
 
     <name>org.hy.common.tpool</name>
@@ -40,14 +40,14 @@
         <dependency>
             <groupId>org</groupId>
             <artifactId>hy.common.base</artifactId>
-            <version>1.0.205</version>
+            <version>1.0.206</version>
             <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>org</groupId>
             <artifactId>hy.common.file</artifactId>
-            <version>1.5.8</version>
+            <version>1.5.9</version>
             <scope>provided</scope>
             <exclusions>
                 <exclusion>
@@ -60,7 +60,7 @@
         <dependency>
             <groupId>org</groupId>
             <artifactId>hy.common.net</artifactId>
-            <version>3.1.0</version>
+            <version>3.1.1</version>
             <scope>provided</scope>
         </dependency>
         
