@@ -1,3 +1,9 @@
+param(
+    [string]$mode = ""   # 当 -mode org 时，只处理路径包含resources目录下的pom.xml
+)
+
+
+
 # 定义版本号递减函数
 function Decrement-Version {
     param(
@@ -74,6 +80,7 @@ if (Test-Path $pomPath) {
     # 加载XML文件并解析版本号
     $pomXml = [xml](Get-Content $pomPath -Encoding UTF8)
     $newVersion = $pomXml.project.version
+    $sourcePomPath = (Resolve-Path $pomPath).Path
     
     # 显示版本号
     if ($newVersion) {
@@ -108,8 +115,10 @@ $targetPomFiles = Get-ChildItem -Path $targetDir -Filter "pom.xml" -Recurse |
         # 条件1：排除源pom.xml文件
         $_.FullName -ne $sourcePomPath -and 
         # 条件2：排除当前目录下的所有pom.xml
-        $_.FullName -notlike "$currentDirPrefix*" -and (
-        $_.FullName -like "*hy.common.net*")
+        $_.FullName -notlike "$currentDirPrefix*" -and
+        $_.FullName -notlike "*\target\*"-and (
+        $_.FullName -like "*hy.common.net*") -and
+        ( $mode -ne "org" -or $_.FullName.Contains("resources") )
     }
 
 if ($targetPomFiles.Count -eq 0) {
